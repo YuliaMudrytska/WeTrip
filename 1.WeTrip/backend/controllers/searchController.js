@@ -1,6 +1,8 @@
 const User = require("../models/user");
 
-// 🔎 Buscar destino
+//lupa de busqueda
+
+//Buscar destino
 const searchDestino = async (req, res) => {
   try {
     const { destino } = req.body;

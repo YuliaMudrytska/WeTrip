@@ -6,6 +6,7 @@ const {
   getBusqueda
 } = require("../controllers/formularioController");
 
+
 router.post("/", crearBusqueda);
 router.get("/:id", getBusqueda);
 

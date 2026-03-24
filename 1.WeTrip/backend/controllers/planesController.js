@@ -1,12 +1,14 @@
 const Plan = require("../models/plan");
 const Busqueda = require("../models/busqueda");
 
+//controller que genera los planes a partir de lo que se le ha introducido en el formulario de formularioController
+
 const {
   generarPlanes,
   reutilizarPlan
 } = require("../services/planes");
 
-// 🔎 GENERAR PLANES (desde formulario)
+//  GENERAR PLANES (desde formulario)
 const getPlanes = async (req, res) => {
   try {
     const { busquedaId } = req.body;

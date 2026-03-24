@@ -1,11 +1,14 @@
 const Busqueda = require("../models/busqueda");
 const User = require("../models/user");
 
+
+//formulario a partor del cual se van a generar las tarjetas con las opciones  y crea la lista de tarjetas favoritas
+
 const {
   calcularPresupuestoPorPersona
 } = require("../services/planes/calcularPresupuesto");
 
-// 📋 Crear formulario (guardar búsqueda)
+//Crear formulario (guardar búsqueda)
 const crearBusqueda = async (req, res) => {
   try {
     const {
