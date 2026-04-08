@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 
+// Simulación (para desarrollo)
 const simularEnvioCorreo = async (correos, asunto, mensaje) => {
   return {
     ok: true,
@@ -10,6 +11,7 @@ const simularEnvioCorreo = async (correos, asunto, mensaje) => {
   };
 };
 
+// Envío real
 const enviarCorreoReal = async (correos, asunto, mensaje) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -35,10 +37,13 @@ const enviarCorreoReal = async (correos, asunto, mensaje) => {
       enviadosA: correos,
       info
     };
+
   } catch (error) {
     console.error(error);
+
     return {
       ok: false,
+      modo: "real",
       msg: "Error al enviar correo",
       error: error.message
     };
