@@ -20,6 +20,7 @@ const formatearDestino = (ciudad, pais) => {
 
 const limpiarArrayCorreos = (correos = []) => {
   return correos
+    .filter((correo) => typeof correo === "string")
     .map((correo) => correo.trim())
     .filter((correo) => correo !== "");
 };
