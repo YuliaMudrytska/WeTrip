@@ -1,14 +1,12 @@
 const Plan = require("../models/plan");
 const Busqueda = require("../models/busqueda");
 
-//controller que genera los planes a partir de lo que se le ha introducido en el formulario de formularioController
-
 const {
   generarPlanes,
   reutilizarPlan
 } = require("../services/planes");
 
-//  GENERAR PLANES (desde formulario)
+// Generar planes desde una búsqueda guardada
 const getPlanes = async (req, res) => {
   try {
     const { busquedaId } = req.body;
@@ -30,14 +28,13 @@ const getPlanes = async (req, res) => {
     const resultado = await generarPlanes(busqueda);
 
     res.json(resultado);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
   }
 };
 
-// 🔁 REUTILIZAR PLAN (tu lógica avanzada)
+// Reutilizar un plan con nuevos datos
 const reutilizar = async (req, res) => {
   try {
     const { planId, nuevosDatos } = req.body;
@@ -48,7 +45,7 @@ const reutilizar = async (req, res) => {
       });
     }
 
-    const planOriginal = await Plan.findById(planId);
+    const planOriginal = await Plan.findById(planId).populate("destinoId");
 
     if (!planOriginal) {
       return res.status(404).json({
@@ -56,13 +53,9 @@ const reutilizar = async (req, res) => {
       });
     }
 
-    const resultado = await reutilizarPlan(
-      planOriginal,
-      nuevosDatos
-    );
+    const resultado = await reutilizarPlan(planOriginal, nuevosDatos);
 
     res.json(resultado);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });

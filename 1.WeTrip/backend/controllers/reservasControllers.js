@@ -1,8 +1,6 @@
 const User = require("../models/user");
 const Plan = require("../models/plan");
 
-//controlador que gestiona las reservas, una vez elegido el plan crea la reserva de ese plan
-
 // Crear reserva
 const crearReserva = async (req, res) => {
   try {
@@ -20,9 +18,9 @@ const crearReserva = async (req, res) => {
 
     const userId = req.user.id;
 
-    if (!planId || !personas || !fechaInicio || !fechaFin) {
+    if ( !planId || !destino || !personas || !fechaInicio || !fechaFin || precioFinal === undefined || precioFinal === null) {
       return res.status(400).json({
-        msg: "Por favor rellene los campos que le faltán"
+        msg: "Faltan datos obligatorios para realizar la reserva"
       });
     }
 
@@ -36,22 +34,59 @@ const crearReserva = async (req, res) => {
 
     const user = await User.findById(userId);
 
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
+    const personasNumero = Number(personas);
+    const precioFinalNumero = Number(precioFinal);
+
+    if (Number.isNaN(personasNumero) || personasNumero < 1) {
+      return res.status(400).json({
+        msg: "El número de personas no es válido"
+      });
+    }
+
+    if (Number.isNaN(precioFinalNumero) || precioFinalNumero < 0) {
+      return res.status(400).json({
+        msg: "El precio final no es válido"
+      });
+    }
+
+    if (new Date(fechaFin) < new Date(fechaInicio)) {
+      return res.status(400).json({
+        msg: "La fecha de vuelta no puede ser anterior a la fecha de ida"
+      });
+    }
+
+    const planesSeleccionados = Array.isArray(planTipo) ? planTipo : [planTipo];
+
     user.reservas.push({
       planId,
-      destino,
-      personas,
+      destino: destino.trim(),
+      personas: personasNumero,
+      presupuesto:
+        presupuesto !== undefined && presupuesto !== null && presupuesto !== ""
+          ? Number(presupuesto)
+          : null,
+      tipoPresupuesto:
+        presupuesto !== undefined && presupuesto !== null && presupuesto !== ""
+          ? tipoPresupuesto
+          : null,
       fechaInicio,
       fechaFin,
-      precioFinal
+      planTipo: planesSeleccionados.filter(Boolean),
+      precioFinal: precioFinalNumero
     });
 
     await user.save();
 
     res.status(201).json({
-      msg: "resrva realizada",
+      msg: "Reserva realizada correctamente",
       reservas: user.reservas
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
@@ -70,10 +105,15 @@ const getReservas = async (req, res) => {
       }
     });
 
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
     res.json({
       reservas: user.reservas
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
@@ -87,6 +127,12 @@ const moverAPlanesRealizados = async (req, res) => {
     const hoy = new Date();
 
     const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
 
     const reservasActivas = [];
     const reservasPasadas = [];
@@ -104,9 +150,12 @@ const moverAPlanesRealizados = async (req, res) => {
         planId: reserva.planId,
         destino: reserva.destino,
         personas: reserva.personas,
+        presupuesto: reserva.presupuesto ?? null,
+        tipoPresupuesto: reserva.tipoPresupuesto ?? null,
         fechaInicio: reserva.fechaInicio,
         fechaFin: reserva.fechaFin,
-        planTipo: "reservado"
+        planTipo: Array.isArray(reserva.planTipo) ? reserva.planTipo : [],
+        precioFinal: reserva.precioFinal ?? null
       });
     });
 
@@ -119,7 +168,6 @@ const moverAPlanesRealizados = async (req, res) => {
       reservas: user.reservas,
       planesRealizados: user.planesRealizados
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
@@ -138,10 +186,15 @@ const getPlanesRealizados = async (req, res) => {
       }
     });
 
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
     res.json({
       planesRealizados: user.planesRealizados
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });

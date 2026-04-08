@@ -22,7 +22,9 @@ const register = async (req, res) => {
       });
     }
 
-    const existeUsuario = await User.findOne({ email });
+    const emailNormalizado = email.trim().toLowerCase();
+
+    const existeUsuario = await User.findOne({ email: emailNormalizado });
 
     if (existeUsuario) {
       return res.status(400).json({
@@ -34,8 +36,8 @@ const register = async (req, res) => {
     const passwordHasheada = await bcrypt.hash(password, salt);
 
     const nuevoUsuario = new User({
-      nombre,
-      email,
+      nombre: nombre.trim(),
+      email: emailNormalizado,
       password: passwordHasheada,
       favoritos: [],
       reservas: [],
@@ -71,7 +73,9 @@ const login = async (req, res) => {
       });
     }
 
-    const usuario = await User.findOne({ email });
+    const emailNormalizado = email.trim().toLowerCase();
+
+    const usuario = await User.findOne({ email: emailNormalizado });
 
     if (!usuario) {
       return res.status(400).json({
@@ -83,7 +87,7 @@ const login = async (req, res) => {
 
     if (!passwordCorrecta) {
       return res.status(400).json({
-        msg: `La contraseña no correspone.`
+        msg: `La contraseña no correspone`
       });
     }
 

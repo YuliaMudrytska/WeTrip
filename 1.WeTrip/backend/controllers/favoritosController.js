@@ -1,8 +1,7 @@
 const User = require("../models/user");
 const Plan = require("../models/plan");
 
-//contolador que añade o quita de favoritos las tarjetas de las opcines
-
+// Añadir a favoritos
 const addFavorito = async (req, res) => {
   try {
     const { planId } = req.body;
@@ -24,6 +23,12 @@ const addFavorito = async (req, res) => {
 
     const user = await User.findById(userId);
 
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
     const yaExiste = user.favoritos.some(
       (fav) => fav.toString() === planId
     );
@@ -41,7 +46,6 @@ const addFavorito = async (req, res) => {
       msg: "Plan añadido a favoritos",
       favoritos: user.favoritos
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
@@ -56,6 +60,12 @@ const removeFavorito = async (req, res) => {
 
     const user = await User.findById(userId);
 
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
     user.favoritos = user.favoritos.filter(
       (fav) => fav.toString() !== planId
     );
@@ -66,7 +76,6 @@ const removeFavorito = async (req, res) => {
       msg: "Plan eliminado de favoritos",
       favoritos: user.favoritos
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
@@ -85,10 +94,15 @@ const getFavoritos = async (req, res) => {
       }
     });
 
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
     res.json({
       favoritos: user.favoritos
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
