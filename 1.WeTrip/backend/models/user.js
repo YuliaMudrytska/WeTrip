@@ -1,59 +1,204 @@
 const mongoose = require("mongoose");
 
-const reservaSchema = new mongoose.Schema({
+const reservaSchema = new mongoose.Schema(
+  {
   planId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Plan",
     required: true
   },
-  destino: String,
-  personas: Number,
-  fechaInicio: Date,
-  fechaFin: Date,
-  precioFinal: Number
-});
+ destino: {
+      type: String,
+      required: true,
+      trim: true
+    },
 
-const planRealizadoSchema = new mongoose.Schema({
+    personas: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+
+    presupuesto: {
+      type: Number,
+      default: null,
+      min: 0
+    },
+
+    tipoPresupuesto: {
+      type: String,
+      enum: ["total", "individual", null],
+      default: null
+    },
+
+    fechaInicio: {
+      type: Date,
+      required: true
+    },
+
+    fechaFin: {
+      type: Date,
+      required: true
+    },
+
+    planTipo: [
+      {
+        type: String,
+        enum: [
+          "completo",
+          "transporte_alojamiento",
+          "transporte_rutas",
+          "alojamiento_rutas"
+        ]
+      }
+    ],
+
+    precioFinal: {
+      type: Number,
+      required: true,
+      min: 0
+    }
+  },
+  { _id: false }
+);
+
+const planRealizadoSchema = new mongoose.Schema(
+  {
   planId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Plan"
+    ref: "Plan",
+    required: true
   },
-  destino: String,
-  personas: Number,
-  presupuesto: Number,
+  destino: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  personas: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  presupuesto: {
+    type: Number,
+    default: null,
+    min: 0
+  },
   tipoPresupuesto: {
     type: String,
-    enum: ["total", "individual"]
+    enum: ["total", "individual", null],
+    default: null
   },
-  fechaInicio: Date,
-  fechaFin: Date,
-  planTipo: String
-});
+  fechaInicio: {
+      type: Date,
+      required: true
+    },
 
-const historialBusquedaSchema = new mongoose.Schema({
-  destino: String,
-  personas: Number,
-  presupuesto: Number,
-  tipoPresupuesto: {
-    type: String,
-    enum: ["total", "individual"]
+    fechaFin: {
+      type: Date,
+      required: true
+    },
+
+    planTipo: [
+      {
+        type: String,
+        enum: [
+          "completo",
+          "transporte_alojamiento",
+          "transporte_rutas",
+          "alojamiento_rutas"
+        ]
+      }
+    ],
+
+    precioFinal: {
+      type: Number,
+      default: null,
+      min: 0
+    }
   },
-  fechaInicio: Date,
-  fechaFin: Date,
-  planTipo: String
-});
+  { _id: false }
+);
+
+
+const historialBusquedaSchema = new mongoose.Schema(
+  {
+  nombre: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    destino: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    personas: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+
+    presupuesto: {
+      type: Number,
+      default: null,
+      min: 0
+    },
+
+    tipoPresupuesto: {
+      type: String,
+      enum: ["total", "individual", null],
+      default: null
+    },
+
+    fechaInicio: {
+      type: Date,
+      required: true
+    },
+
+    fechaFin: {
+      type: Date,
+      required: true
+    },
+
+    planTipo: [
+      {
+        type: String,
+        enum: [
+          "completo",
+          "transporte_alojamiento",
+          "transporte_rutas",
+          "alojamiento_rutas"
+        ]
+      }
+    ],
+
+    correos: {
+      type: [String],
+      default: []
+    }
+  },
+  { _id: false, timestamps: true }
+);
 
 const userSchema = new mongoose.Schema(
   {
     nombre: {
       type: String,
-      required: true
+      required: true,
+      trim: true
     },
+
     email: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
+      trim: true,
+      lowercase: true
     },
+
     password: {
       type: String,
       required: true
@@ -66,11 +211,20 @@ const userSchema = new mongoose.Schema(
       }
     ],
 
-    reservas: [reservaSchema],
+    reservas: {
+      type: [reservaSchema],
+      default: []
+    },
 
-    planesRealizados: [planRealizadoSchema],
+    planesRealizados: {
+      type: [planRealizadoSchema],
+      default: []
+    },
 
-    historialBusquedas: [historialBusquedaSchema]
+    historialBusquedas: {
+      type: [historialBusquedaSchema],
+      default: []
+    }
   },
   { timestamps: true }
 );

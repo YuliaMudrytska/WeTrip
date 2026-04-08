@@ -18,12 +18,20 @@ const planSchema = new mongoose.Schema({
     required: true
   },
 
-  descripcion: String,
-  imagen: String,
+  descripcion: {
+      type: String,
+      default: ""
+    },
+
+    imagen: {
+      type: String,
+      default: ""
+    },
 
   precioBasePorPersona: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
 
   incluye: {
@@ -34,7 +42,8 @@ const planSchema = new mongoose.Schema({
 
   maxPersonas: {
     type: Number,
-    default: 10
+    default: 10,
+    min: 1
   }
 },
 { timestamps: true }

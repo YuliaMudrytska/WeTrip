@@ -4,42 +4,73 @@ const busquedaSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
+      ref: "User", 
+      default: null
+    },
+
+    nombre:{
+      type: String,
+      required: true,
+      trim: true
     },
 
     destino: {
       type: String,
-      required: true
+      required: true, 
+      trim: true
     },
 
     personas: {
       type: Number,
-      required: true
+      required: true,
+      min: 1
     },
 
-    presupuesto: Number,
+    presupuesto: {
+      type: Number,
+      default: null,
+      min: 0
+    },
 
     tipoPresupuesto: {
       type: String,
-      enum: ["total", "individual"]
+      enum: ["total", "individual", null],
+      default: null 
     },
 
-    presupuestoPorPersona: Number,
+    presupuestoPorPersona: {
+      type: Number,
+      default: null,
+      min: 0
+    },
+  
 
-    fechaInicio: Date,
-    fechaFin: Date,
-
-    planTipo: {
-      type: String,
-      enum: [
-        "completo",
-        "transporte_alojamiento",
-        "transporte_rutas",
-        "alojamiento_rutas"
-      ]
+    fechaInicio: {
+      type: Date, 
+      required: true
     },
 
-    correos: [String]
+    fechaFin: {
+      type: Date,
+      required: true
+    },
+
+    planTipo: [
+      {
+        type: String,
+        enum: [
+          "completo",
+          "transporte_alojamiento",
+          "transporte_rutas",
+          "alojamiento_rutas"
+        ]
+      }
+    ],
+
+    correos: {
+      type: [String],
+      default: []
+    }
   },
   { timestamps: true }
 );
