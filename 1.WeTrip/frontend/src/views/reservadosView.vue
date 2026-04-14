@@ -8,6 +8,14 @@ const error = ref("");
 const reservas = ref([]);
 
 const cargarReservas = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    error.value = "Debes iniciar sesión para ver tus reservas.";
+    cargando.value = false;
+    return;
+  }
+
   try {
     cargando.value = true;
     error.value = "";
@@ -84,7 +92,10 @@ onMounted(() => {
             <p><strong>Personas:</strong> {{ reserva.personas }}</p>
             <p><strong>Ida:</strong> {{ String(reserva.fechaInicio).slice(0, 10) }}</p>
             <p><strong>Vuelta:</strong> {{ String(reserva.fechaFin).slice(0, 10) }}</p>
-            <p><strong>Precio final:</strong> {{ reserva.precioFinal }} €</p>
+
+            <p v-if="reserva.precioFinal !== null && reserva.precioFinal !== undefined">
+              <strong>Precio final:</strong> {{ reserva.precioFinal }} €
+            </p>
           </div>
         </div>
       </article>

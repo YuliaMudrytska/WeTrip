@@ -180,7 +180,7 @@ const historialBusquedaSchema = new mongoose.Schema(
       default: []
     }
   },
-  { _id: false, timestamps: true }
+  { timestamps: true }
 );
 
 const userSchema = new mongoose.Schema(

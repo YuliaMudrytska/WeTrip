@@ -17,6 +17,7 @@ const searchDestino = async (req, res) => {
     // Si no hay usuario logueado -> irá al formulario
     if (!userId) {
       return res.json({
+        estaLogueado: false,
         existeHistorial: false
       });
     }
@@ -35,12 +36,14 @@ const searchDestino = async (req, res) => {
 
     if (busquedaAnterior) {
       return res.json({
+        estaLogueado: true,
         existeHistorial: true,
         ultimaBusqueda: busquedaAnterior
       });
     }
 
     return res.json({
+      estaLogueado: true,
       existeHistorial: false
     });
   } catch (error) {

@@ -25,7 +25,7 @@ const iniciarSesion = async () => {
     cargando.value = true;
 
     const { data } = await api.post("/auth/login", {
-      email: form.value.email.trim(),
+      email: form.value.email.trim().toLowerCase(),
       password: form.value.password
     });
 
@@ -33,6 +33,7 @@ const iniciarSesion = async () => {
     localStorage.setItem("user", JSON.stringify(data.user));
 
     router.push("/");
+    window.location.reload();
   } catch (err) {
     console.error(err);
     error.value =

@@ -20,6 +20,14 @@ const moverReservasVencidas = async () => {
 };
 
 const cargarRealizados = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    error.value = "Debes iniciar sesión para ver tus planes realizados.";
+    cargando.value = false;
+    return;
+  }
+
   try {
     cargando.value = true;
     error.value = "";

@@ -8,6 +8,14 @@ const error = ref("");
 const favoritos = ref([]);
 
 const cargarFavoritos = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    error.value = "Debes iniciar sesión para ver tus favoritos.";
+    cargando.value = false;
+    return;
+  }
+
   try {
     cargando.value = true;
     error.value = "";

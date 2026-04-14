@@ -26,12 +26,17 @@ const registrarse = async () => {
     return;
   }
 
+  if (form.value.password.length < 6) {
+    error.value = "La contraseña debe tener al menos 6 caracteres.";
+    return;
+  }
+
   try {
     cargando.value = true;
 
     const { data } = await api.post("/auth/register", {
       nombre: form.value.nombre.trim(),
-      email: form.value.email.trim(),
+      email: form.value.email.trim().toLowerCase(),
       password: form.value.password
     });
 
@@ -39,6 +44,7 @@ const registrarse = async () => {
     localStorage.setItem("user", JSON.stringify(data.user));
 
     router.push("/");
+    window.location.reload();
   } catch (err) {
     console.error(err);
     error.value =

@@ -209,7 +209,7 @@ const enviarFormulario = async () => {
           <label for="personas">Nº de personas</label>
           <input
             id="personas"
-            v-model="form.personas"
+            v-model.number="form.personas"
             type="number"
             min="1"
           />
@@ -219,7 +219,7 @@ const enviarFormulario = async () => {
           <label for="presupuesto">Presupuesto</label>
           <input
             id="presupuesto"
-            v-model="form.presupuesto"
+            v-model.number="form.presupuesto"
             type="number"
             min="0"
             placeholder="Opcional"

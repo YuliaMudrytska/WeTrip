@@ -115,9 +115,13 @@ const continuar = async () => {
     guardandoReservas.value = true;
 
     for (const plan of seleccionados.value) {
+      const destinoFormateado = [plan.destinoId?.ciudad, plan.destinoId?.pais]
+        .filter(Boolean)
+        .join(", ");
+
       await api.post("/reservas", {
         planId: plan._id,
-        destino: `${plan.destinoId?.ciudad || ""}, ${plan.destinoId?.pais || ""}`.trim(),
+        destino: destinoFormateado,
         personas: busquedaActual.value.personas,
         fechaInicio: busquedaActual.value.fechaInicio,
         fechaFin: busquedaActual.value.fechaFin,
@@ -169,7 +173,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <headerBar/>
+  <headerBar />
   <section class="planes-page">
     <div class="hero">
       <p class="eyebrow">WE TRIP</p>
@@ -200,9 +204,9 @@ onMounted(async () => {
         class="continue-btn"
         :disabled="!seleccionMinimaCumplida || guardandoReservas"
         @click="continuar"
-    >
-      {{ guardandoReservas ? "Guardando reservas..." : "Continuar" }}
-    </button>
+      >
+        {{ guardandoReservas ? "Guardando reservas..." : "Continuar" }}
+      </button>
     </div>
 
     <div v-if="cargando" class="state-box">

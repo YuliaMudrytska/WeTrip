@@ -27,26 +27,52 @@ const buscarDestino = async () => {
       destino: destinoLimpio
     });
 
-    if (data.existeHistorial && data.ultimaBusqueda) {
-      window.confirm(
-        "Ya habías buscado este destino. ¿Quieres modificar el formulario?"
-      );
-
+    // Usuario no logueado -> formulario normal
+    if (!data.estaLogueado) {
       router.push({
         path: "/formulario",
         query: {
-          data: JSON.stringify(data.ultimaBusqueda)
+          destino: destinoLimpio
         }
       });
       return;
     }
 
-    router.push({
-      path: "/formulario",
-      query: {
-        destino: destinoLimpio
+    // Usuario logueado, pero no existe historial -> formulario normal
+    if (data.estaLogueado && !data.existeHistorial) {
+      router.push({
+        path: "/formulario",
+        query: {
+          destino: destinoLimpio
+        }
+      });
+      return;
+    }
+
+    // Usuario logueado y con historial
+    if (data.estaLogueado && data.existeHistorial && data.ultimaBusqueda) {
+      const quiereModificar = window.confirm(
+        "Ya habías buscado este destino. ¿Quieres cambiar algo del formulario?"
+      );
+
+      if (quiereModificar) {
+        router.push({
+          path: "/formulario",
+          query: {
+            data: JSON.stringify(data.ultimaBusqueda)
+          }
+        });
+        return;
       }
-    });
+
+      // Si no quiere modificar, ir directamente a planes usando la búsqueda previa
+      router.push({
+        path: "/planes",
+        query: {
+          id: data.ultimaBusqueda._id
+        }
+      });
+    }
   } catch (err) {
     console.error(err);
     error.value = "No se pudo realizar la búsqueda. Inténtalo de nuevo.";
