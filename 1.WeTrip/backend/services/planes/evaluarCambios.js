@@ -1,8 +1,8 @@
 const { adaptarPlan } = require("./adaptarPlan");
 
 const evaluarCambios = (planOriginal, nuevosDatos, planesDisponibles = []) => {
-  let planValido = true;
-  let planAdaptado = null;
+  let planOriginalValido = true;
+  let planesAdaptados = [];
 
   const {
     personas,
@@ -11,6 +11,7 @@ const evaluarCambios = (planOriginal, nuevosDatos, planesDisponibles = []) => {
   } = nuevosDatos;
 
   const personasNumero = Number(personas) || 1;
+
   const presupuestoNumero =
     presupuestoPorPersona !== undefined &&
     presupuestoPorPersona !== null &&
@@ -18,43 +19,61 @@ const evaluarCambios = (planOriginal, nuevosDatos, planesDisponibles = []) => {
       ? Number(presupuestoPorPersona)
       : null;
 
-  // Validar si el plan original sigue sirviendo
+  const tiposNuevos = Array.isArray(planTipoNuevo)
+    ? planTipoNuevo.filter(Boolean)
+    : planTipoNuevo
+      ? [planTipoNuevo]
+      : [];
+
+  // 1. Validar si el plan original sigue sirviendo
   if (planOriginal.maxPersonas < personasNumero) {
-    planValido = false;
+    planOriginalValido = false;
   }
 
   if (
     presupuestoNumero !== null &&
     planOriginal.precioBasePorPersona > presupuestoNumero
   ) {
-    planValido = false;
+    planOriginalValido = false;
   }
 
-  // Si cambia el tipo, intentar adaptar
-  if (planTipoNuevo && planTipoNuevo !== planOriginal.tipo) {
-    planAdaptado = adaptarPlan(planOriginal, planTipoNuevo);
+  // Si se han indicado tipos nuevos y el original no está entre ellos, deja de valer como original puro
+  if (tiposNuevos.length > 0 && !tiposNuevos.includes(planOriginal.tipo)) {
+    planOriginalValido = false;
+  }
 
-    if (planAdaptado) {
-      if (planAdaptado.maxPersonas < personasNumero) {
-        planAdaptado = null;
-      }
+  // 2. Intentar adaptar el plan original a varios tipos nuevos
+  if (tiposNuevos.length > 0) {
+    planesAdaptados = tiposNuevos
+      .filter((tipo) => tipo !== planOriginal.tipo)
+      .map((tipo) => adaptarPlan(planOriginal, tipo))
+      .filter((plan) => plan !== null)
+      .filter((plan) => {
+        const capacidadValida = plan.maxPersonas >= personasNumero;
+        const presupuestoValido =
+          presupuestoNumero === null ||
+          plan.precioBasePorPersona <= presupuestoNumero;
 
-      if (
-        presupuestoNumero !== null &&
-        planAdaptado &&
-        planAdaptado.precioBasePorPersona > presupuestoNumero
-      ) {
-        planAdaptado = null;
-      }
+        return capacidadValida && presupuestoValido;
+      });
+  }
+
+  // Evitar duplicados en adaptados por si acaso
+  const tiposAdaptadosUnicos = new Set();
+  planesAdaptados = planesAdaptados.filter((plan) => {
+    if (tiposAdaptadosUnicos.has(plan.tipo)) {
+      return false;
     }
-  }
+    tiposAdaptadosUnicos.add(plan.tipo);
+    return true;
+  });
 
-  // Buscar nuevas alternativas
+  // 3. Buscar nuevas alternativas reales en BD
   const destinoIdOriginal =
     planOriginal.destinoId?._id?.toString?.() ||
     planOriginal.destinoId?.toString?.();
 
-  const nuevosPlanes = planesDisponibles.filter((plan) => {
+  let nuevosPlanes = planesDisponibles.filter((plan) => {
     const destinoIdPlan =
       plan.destinoId?._id?.toString?.() ||
       plan.destinoId?.toString?.();
@@ -64,14 +83,21 @@ const evaluarCambios = (planOriginal, nuevosDatos, planesDisponibles = []) => {
     const presupuestoValido =
       presupuestoNumero === null ||
       plan.precioBasePorPersona <= presupuestoNumero;
-    const tipoValido = !planTipoNuevo || plan.tipo === planTipoNuevo;
+
+    const tipoValido =
+      tiposNuevos.length === 0 || tiposNuevos.includes(plan.tipo);
 
     return mismoDestino && capacidadValida && presupuestoValido && tipoValido;
   });
 
+  // Evitar duplicar el plan original dentro de nuevosPlanes
+  nuevosPlanes = nuevosPlanes.filter(
+    (plan) => plan._id.toString() !== planOriginal._id.toString()
+  );
+
   return {
-    planOriginal: planValido ? planOriginal : null,
-    planAdaptado,
+    planOriginal: planOriginalValido ? planOriginal : null,
+    planesAdaptados,
     nuevosPlanes
   };
 };

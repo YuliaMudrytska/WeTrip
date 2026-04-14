@@ -1,30 +1,32 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { ref, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import api from "../api/api";
-import PlanCard from "../components/planes.vue";
+import headerBar from "../components/headerBar.vue";
 
 const route = useRoute();
+const router = useRouter();
 
-const planes = ref([]);
-const mensajeBackend = ref("");
 const cargando = ref(true);
 const error = ref("");
+const mensajeBackend = ref("");
+const planes = ref([]);
 const seleccionados = ref([]);
 const favoritos = ref([]);
+const busquedaActual = ref(null);
+const guardandoReservas = ref(false);
 
 const maxSeleccion = 10;
 const minSeleccion = 2;
 
-const maximoAlcanzado = computed(() => seleccionados.value.length >= maxSeleccion);
-const seleccionMinimaCumplida = computed(() => seleccionados.value.length >= minSeleccion);
+const cantidadSeleccionada = computed(() => seleccionados.value.length);
+const maximoAlcanzado = computed(() => cantidadSeleccionada.value >= maxSeleccion);
+const seleccionMinimaCumplida = computed(() => cantidadSeleccionada.value >= minSeleccion);
 
 const mensajeMaximo = computed(() => {
   if (!maximoAlcanzado.value) return "";
   return "Has alcanzado el número máximo de opciones a elegir.";
 });
-
-const cantidadSeleccionada = computed(() => seleccionados.value.length);
 
 const estaSeleccionado = (planId) => {
   return seleccionados.value.some((plan) => plan._id === planId);
@@ -32,6 +34,27 @@ const estaSeleccionado = (planId) => {
 
 const esFavorito = (planId) => {
   return favoritos.value.includes(planId);
+};
+
+const cargarFavoritos = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const { data } = await api.get("/favoritos");
+    favoritos.value = (data.favoritos || []).map((plan) => plan._id);
+  } catch (err) {
+    console.error("Error cargando favoritos:", err);
+  }
+};
+
+const cargarBusqueda = async (busquedaId) => {
+  try {
+    const { data } = await api.get(`/formulario/${busquedaId}`);
+    busquedaActual.value = data;
+  } catch (err) {
+    console.error("Error cargando búsqueda:", err);
+  }
 };
 
 const toggleSeleccion = (plan) => {
@@ -49,36 +72,70 @@ const toggleSeleccion = (plan) => {
 
 const toggleFavorito = async (plan) => {
   try {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Debes iniciar sesión para guardar favoritos.");
+      return;
+    }
+
     const yaEsFavorito = esFavorito(plan._id);
 
     if (yaEsFavorito) {
+      await api.delete(`/favoritos/${plan._id}`);
       favoritos.value = favoritos.value.filter((id) => id !== plan._id);
       return;
     }
 
+    await api.post("/favoritos", { planId: plan._id });
     favoritos.value.push(plan._id);
-
-    // Cuando conectes favoritos reales:
-    // await api.post("/favoritos", { planId: plan._id });
   } catch (err) {
     console.error(err);
+    alert(err?.response?.data?.msg || "No se pudo actualizar favoritos.");
   }
 };
 
-const reservarSeleccionados = async () => {
+const continuar = async () => {
   if (!seleccionMinimaCumplida.value) return;
 
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Debes iniciar sesión para reservar planes.");
+    router.push("/login");
+    return;
+  }
+
+  if (!busquedaActual.value) {
+    alert("No se ha encontrado la búsqueda asociada.");
+    return;
+  }
+
   try {
-    console.log("Planes seleccionados:", seleccionados.value);
+    guardandoReservas.value = true;
 
-    // Aquí conectarás con reservas después.
-    // Ejemplo:
-    // await api.post("/reservas", { planes: seleccionados.value });
+    for (const plan of seleccionados.value) {
+      await api.post("/reservas", {
+        planId: plan._id,
+        destino: `${plan.destinoId?.ciudad || ""}, ${plan.destinoId?.pais || ""}`.trim(),
+        personas: busquedaActual.value.personas,
+        fechaInicio: busquedaActual.value.fechaInicio,
+        fechaFin: busquedaActual.value.fechaFin,
+        precioFinal:
+          Number(plan.precioBasePorPersona) * Number(busquedaActual.value.personas),
+        presupuesto: busquedaActual.value.presupuesto,
+        tipoPresupuesto: busquedaActual.value.tipoPresupuesto,
+        planTipo: busquedaActual.value.planTipo
+      });
+    }
 
-    alert("Selección guardada correctamente.");
+    alert("Reservas realizadas correctamente.");
+    router.push("/reservados");
   } catch (err) {
     console.error(err);
-    error.value = "No se pudo guardar la selección.";
+    alert(err?.response?.data?.msg || "No se pudieron guardar las reservas.");
+  } finally {
+    guardandoReservas.value = false;
   }
 };
 
@@ -87,18 +144,24 @@ onMounted(async () => {
     const busquedaId = route.query.id;
 
     if (!busquedaId) {
-      error.value = "No se ha recibido la búsqueda.";
+      error.value = "No se ha recibido una búsqueda válida.";
       cargando.value = false;
       return;
     }
 
-    const res = await api.post("/planes", { busquedaId });
+    const { data } = await api.post("/planes", {
+      busquedaId
+    });
 
-    planes.value = res.data.planes || [];
-    mensajeBackend.value = res.data.mensaje || "";
+    planes.value = data.planes || [];
+    mensajeBackend.value = data.mensaje || "";
+
+    await cargarBusqueda(busquedaId);
+    await cargarFavoritos();
   } catch (err) {
     console.error(err);
-    error.value = "Hubo un problema al cargar los planes.";
+    error.value =
+      err?.response?.data?.msg || "No se pudieron cargar los planes.";
   } finally {
     cargando.value = false;
   }
@@ -106,17 +169,18 @@ onMounted(async () => {
 </script>
 
 <template>
+  <headerBar/>
   <section class="planes-page">
     <div class="hero">
       <p class="eyebrow">WE TRIP</p>
-      <h1>Elige tus mejores opciones de viaje</h1>
+      <h1>Elige las mejores opciones para tu viaje</h1>
       <p class="hero-text">
-        Selecciona entre <strong>2</strong> y <strong>10</strong> planes para compararlos,
-        guardarlos o continuar con tu reserva.
+        Selecciona entre <strong>2</strong> y <strong>10</strong> opciones para
+        comparar tus planes antes de continuar.
       </p>
     </div>
 
-    <div class="top-alert" v-if="mensajeBackend || mensajeMaximo">
+    <div v-if="mensajeBackend || mensajeMaximo" class="top-alert">
       <p v-if="mensajeBackend">{{ mensajeBackend }}</p>
       <p v-if="mensajeMaximo">{{ mensajeMaximo }}</p>
     </div>
@@ -133,12 +197,12 @@ onMounted(async () => {
       </div>
 
       <button
-        class="reserve-btn"
-        :disabled="!seleccionMinimaCumplida"
-        @click="reservarSeleccionados"
-      >
-        Continuar
-      </button>
+        class="continue-btn"
+        :disabled="!seleccionMinimaCumplida || guardandoReservas"
+        @click="continuar"
+    >
+      {{ guardandoReservas ? "Guardando reservas..." : "Continuar" }}
+    </button>
     </div>
 
     <div v-if="cargando" class="state-box">
@@ -154,18 +218,68 @@ onMounted(async () => {
     </div>
 
     <div v-else class="plans-grid">
-      <PlanCard
+      <article
         v-for="plan in planes"
         :key="plan._id"
-        :plan="plan"
-        :seleccionado="estaSeleccionado(plan._id)"
-        :maximoAlcanzado="maximoAlcanzado"
-        @toggle-seleccion="toggleSeleccion"
-        @toggle-favorito="toggleFavorito"
-      />
+        class="plan-card"
+        :class="{ selected: estaSeleccionado(plan._id) }"
+      >
+        <button
+          class="favorite-btn"
+          @click="toggleFavorito(plan)"
+          aria-label="Guardar en favoritos"
+        >
+          {{ esFavorito(plan._id) ? "♥" : "♡" }}
+        </button>
+
+        <div class="image-wrapper">
+          <img
+            :src="plan.imagen || 'https://via.placeholder.com/500x300?text=WE+TRIP'"
+            :alt="`${plan.destinoId?.ciudad || 'Destino'}, ${plan.destinoId?.pais || ''}`"
+          />
+          <span v-if="estaSeleccionado(plan._id)" class="selected-badge">
+            Seleccionado
+          </span>
+        </div>
+
+        <div class="card-content">
+          <h2 class="title">
+            {{ plan.destinoId?.ciudad || "Destino" }}, {{ plan.destinoId?.pais || "País" }}
+          </h2>
+
+          <p class="description">
+            {{ plan.descripcion || "Plan de viaje personalizado para tu búsqueda." }}
+          </p>
+
+          <div class="features">
+            <span :class="{ active: plan.incluye?.transporte }">Transporte</span>
+            <span :class="{ active: plan.incluye?.alojamiento }">Alojamiento</span>
+            <span :class="{ active: plan.incluye?.rutas }">Rutas</span>
+          </div>
+
+          <div class="info-row">
+            <p class="price">
+              {{ plan.precioBasePorPersona }} €
+              <small>/ persona</small>
+            </p>
+
+            <p class="capacity">
+              Máx. {{ plan.maxPersonas }} personas
+            </p>
+          </div>
+
+          <button
+            class="select-btn"
+            :class="{ disabled: !estaSeleccionado(plan._id) && maximoAlcanzado }"
+            @click="toggleSeleccion(plan)"
+          >
+            {{ estaSeleccionado(plan._id) ? "Quitar opción" : "Añadir opción" }}
+          </button>
+        </div>
+      </article>
     </div>
 
-    <div class="bottom-alert" v-if="mensajeMaximo">
+    <div v-if="mensajeMaximo" class="bottom-alert">
       {{ mensajeMaximo }}
     </div>
   </section>
@@ -261,7 +375,7 @@ onMounted(async () => {
   font-size: 1.2rem;
 }
 
-.reserve-btn {
+.continue-btn {
   border: none;
   border-radius: 16px;
   padding: 18px 24px;
@@ -274,7 +388,7 @@ onMounted(async () => {
   box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28);
 }
 
-.reserve-btn:disabled {
+.continue-btn:disabled {
   background: #94a3b8;
   box-shadow: none;
   cursor: not-allowed;
@@ -305,12 +419,159 @@ onMounted(async () => {
   gap: 22px;
 }
 
+.plan-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.09);
+}
+
+.plan-card.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 18px 35px rgba(59, 130, 246, 0.16);
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  font-size: 1.1rem;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.image-wrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.selected-badge {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  background: #2563eb;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.description {
+  margin: 0 0 16px;
+  color: #4b5563;
+  line-height: 1.5;
+  min-height: 48px;
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.features span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.features span.active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.price {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.price small {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.capacity {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.select-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #111827;
+  color: white;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.select-btn:hover {
+  transform: translateY(-1px);
+}
+
+.select-btn.disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
 @media (max-width: 860px) {
   .summary-bar {
     grid-template-columns: 1fr;
   }
 
-  .reserve-btn {
+  .continue-btn {
     width: 100%;
   }
 }

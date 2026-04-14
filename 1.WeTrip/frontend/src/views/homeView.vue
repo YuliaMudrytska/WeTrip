@@ -2,16 +2,20 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "../api/api";
+import headerBar from "../components/headerBar.vue";
+
+const router = useRouter();
 
 const destino = ref("");
 const cargando = ref(false);
 const error = ref("");
-const router = useRouter();
 
-const buscar = async () => {
+const buscarDestino = async () => {
   error.value = "";
 
-  if (!destino.value.trim()) {
+  const destinoLimpio = destino.value.trim();
+
+  if (!destinoLimpio) {
     error.value = "Introduce un destino para continuar.";
     return;
   }
@@ -19,29 +23,30 @@ const buscar = async () => {
   try {
     cargando.value = true;
 
-    const res = await api.post("/search", {
-      destino: destino.value.trim()
+    const { data } = await api.post("/search", {
+      destino: destinoLimpio
     });
 
-    if (res.data.existeHistorial) {
-      const confirmar = confirm(
+    if (data.existeHistorial && data.ultimaBusqueda) {
+      window.confirm(
         "Ya habías buscado este destino. ¿Quieres modificar el formulario?"
       );
 
-      if (confirmar) {
-        router.push({
-          path: "/formulario",
-          query: { data: JSON.stringify(res.data.ultimaBusqueda) }
-        });
-      } else {
-        router.push("/planes");
-      }
-    } else {
       router.push({
         path: "/formulario",
-        query: { destino: destino.value.trim() }
+        query: {
+          data: JSON.stringify(data.ultimaBusqueda)
+        }
       });
+      return;
     }
+
+    router.push({
+      path: "/formulario",
+      query: {
+        destino: destinoLimpio
+      }
+    });
   } catch (err) {
     console.error(err);
     error.value = "No se pudo realizar la búsqueda. Inténtalo de nuevo.";
@@ -52,14 +57,16 @@ const buscar = async () => {
 </script>
 
 <template>
+  <headerBar />
   <section class="home-page">
     <div class="hero-card">
       <p class="eyebrow">WE TRIP</p>
 
-      <h1>Organiza tu viaje de forma  fácil</h1>
+      <h1>Organiza tu viaje de forma más fácil y ajustada a tu presupuesto</h1>
 
       <p class="hero-text">
-       ¿Quieres hacer un viaje divertido con tus amigos? Nosotros te echamos una mano, con Wetrip hazlo de forma fácil, rapida y más económica
+        Busca tu destino, rellena tu formulario y descubre opciones de viaje
+        pensadas para ti.
       </p>
 
       <div class="search-box">
@@ -67,31 +74,46 @@ const buscar = async () => {
           v-model="destino"
           type="text"
           placeholder="Introduce tu destino"
-          @keyup.enter="buscar"
+          @keyup.enter="buscarDestino"
         />
-        <button @click="buscar" :disabled="cargando">
+
+        <button @click="buscarDestino" :disabled="cargando">
           {{ cargando ? "Buscando..." : "Buscar" }}
         </button>
       </div>
 
-      <p v-if="error" class="error-message">{{ error }}</p>
+      <p v-if="error" class="error-message">
+        {{ error }}
+      </p>
 
       <div class="hero-info">
-        <div class="info-pill">Planes personalizados</div>
-        <div class="info-pill">Comparación rápida</div>
-        <div class="info-pill">Opciones por presupuesto</div>
+        <div class="info-pill">Búsqueda rápida</div>
+        <div class="info-pill">Planes por presupuesto</div>
+        <div class="info-pill">Comparación de opciones</div>
       </div>
     </div>
 
     <div class="featured-section">
       <div class="featured-card">
         <span class="featured-tag">Destinos populares</span>
-        <h2>Empieza con una idea de viaje</h2>
+        <h2>Ideas para empezar</h2>
+
         <div class="destinations-grid">
-          <div class="destination-item">Ámsterdam, Países Bajos</div>
-          <div class="destination-item">Tokio, Japón</div>
-          <div class="destination-item">Bogotá, Colombia</div>
-          <div class="destination-item">Segovia, España</div>
+          <button class="destination-item" @click="destino = 'Ámsterdam, Países Bajos'; buscarDestino()">
+            Ámsterdam, Países Bajos
+          </button>
+
+          <button class="destination-item" @click="destino = 'Tokio, Japón'; buscarDestino()">
+            Tokio, Japón
+          </button>
+
+          <button class="destination-item" @click="destino = 'Bogotá, Colombia'; buscarDestino()">
+            Bogotá, Colombia
+          </button>
+
+          <button class="destination-item" @click="destino = 'Segovia, España'; buscarDestino()">
+            Segovia, España
+          </button>
         </div>
       </div>
     </div>
@@ -112,7 +134,7 @@ const buscar = async () => {
   margin: 0 auto 28px;
   padding: 48px 32px;
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(219, 234, 254, 0.9);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
   text-align: center;
@@ -128,7 +150,7 @@ const buscar = async () => {
 .hero-card h1 {
   margin: 0 auto 16px;
   max-width: 860px;
-  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  font-size: clamp(2rem, 5vw, 3.5rem);
   line-height: 1.08;
   color: #0f172a;
 }
@@ -245,6 +267,14 @@ const buscar = async () => {
   border: 1px solid #e2e8f0;
   color: #334155;
   font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.destination-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
 }
 
 @media (max-width: 760px) {

@@ -6,7 +6,7 @@ const {
   getReservas,
   moverAPlanesRealizados,
   getPlanesRealizados
-} = require("../controllers/reservasControllers");
+} = require("../controllers/reservasController");
 
 const { protect } = require("../middlewares/authMiddleware");
 

@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../api/api";
+import headerBar from "../components/headerBar.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -11,13 +12,14 @@ const error = ref("");
 const avisoPresupuesto = ref("");
 
 const form = ref({
+  nombre: "",
   destino: "",
   personas: 1,
   presupuesto: "",
   tipoPresupuesto: "total",
   fechaInicio: "",
   fechaFin: "",
-  planTipo: "completo",
+  planTipo: [],
   correos: [""]
 });
 
@@ -60,68 +62,106 @@ watch(
 
 onMounted(() => {
   if (route.query.destino) {
-    form.value.destino = route.query.destino;
+    form.value.destino = String(route.query.destino);
   }
 
   if (route.query.data) {
-    const datos = JSON.parse(route.query.data);
+    try {
+      const datos = JSON.parse(String(route.query.data));
 
-    Object.assign(form.value, {
-      ...form.value,
-      ...datos
-    });
-
-    if (!Array.isArray(form.value.correos) || !form.value.correos.length) {
-      form.value.correos = [""];
+      form.value.nombre = datos.nombre || "";
+      form.value.destino = datos.destino || "";
+      form.value.personas = Number(datos.personas) || 1;
+      form.value.presupuesto = datos.presupuesto ?? "";
+      form.value.tipoPresupuesto = datos.tipoPresupuesto || "total";
+      form.value.fechaInicio = datos.fechaInicio
+        ? String(datos.fechaInicio).slice(0, 10)
+        : "";
+      form.value.fechaFin = datos.fechaFin
+        ? String(datos.fechaFin).slice(0, 10)
+        : "";
+      form.value.planTipo = Array.isArray(datos.planTipo)
+        ? datos.planTipo
+        : datos.planTipo
+          ? [datos.planTipo]
+          : [];
+      form.value.correos = Array.isArray(datos.correos) && datos.correos.length
+        ? datos.correos
+        : [""];
+    } catch (err) {
+      console.error("Error leyendo datos previos:", err);
     }
   }
 
   actualizarCorreos();
 });
 
-const enviar = async () => {
+const togglePlan = (tipo) => {
+  const index = form.value.planTipo.indexOf(tipo);
+
+  if (index >= 0) {
+    form.value.planTipo.splice(index, 1);
+  } else {
+    form.value.planTipo.push(tipo);
+  }
+};
+
+const enviarFormulario = async () => {
   error.value = "";
 
   if (
-    !form.value.destino ||
+    !form.value.nombre.trim() ||
+    !form.value.destino.trim() ||
     !form.value.personas ||
     !form.value.fechaInicio ||
     !form.value.fechaFin ||
-    !form.value.planTipo
+    form.value.planTipo.length === 0
   ) {
     error.value = "Completa todos los campos obligatorios.";
     return;
   }
 
-  if (Number(form.value.personas) >= 2) {
-    const correo1 = form.value.correos[0]?.trim();
-    const correo2 = form.value.correos[1]?.trim();
+  if (new Date(form.value.fechaFin) < new Date(form.value.fechaInicio)) {
+    error.value = "La fecha de vuelta no puede ser anterior a la fecha de ida.";
+    return;
+  }
 
-    if (!correo1 || !correo2) {
-      error.value = "Debes rellenar al menos dos correos si viajan dos o más personas.";
-      return;
-    }
+  const correosLimpios = form.value.correos
+    .map((correo) => correo.trim())
+    .filter((correo) => correo !== "");
+
+  if (Number(form.value.personas) >= 2 && correosLimpios.length < 2) {
+    error.value = "Debes rellenar al menos dos correos si viajan dos o más personas.";
+    return;
   }
 
   try {
     cargando.value = true;
 
     const payload = {
-      ...form.value,
+      nombre: form.value.nombre.trim(),
+      destino: form.value.destino.trim(),
       personas: Number(form.value.personas),
-      presupuesto: form.value.presupuesto ? Number(form.value.presupuesto) : undefined,
-      correos: form.value.correos.filter((correo) => correo.trim() !== "")
+      presupuesto:
+        form.value.presupuesto !== "" ? Number(form.value.presupuesto) : null,
+      tipoPresupuesto:
+        form.value.presupuesto !== "" ? form.value.tipoPresupuesto : null,
+      fechaInicio: form.value.fechaInicio,
+      fechaFin: form.value.fechaFin,
+      planTipo: form.value.planTipo,
+      correos: correosLimpios
     };
 
-    const res = await api.post("/formulario", payload);
+    const { data } = await api.post("/formulario", payload);
 
     router.push({
       path: "/planes",
-      query: { id: res.data.busquedaId }
+      query: { id: data.busquedaId }
     });
   } catch (err) {
     console.error(err);
-    error.value = "No se pudo guardar el formulario.";
+    error.value =
+      err?.response?.data?.msg || "No se pudo guardar el formulario.";
   } finally {
     cargando.value = false;
   }
@@ -129,13 +169,13 @@ const enviar = async () => {
 </script>
 
 <template>
+  <headerBar />
   <section class="form-page">
     <div class="form-header">
       <p class="eyebrow">WE TRIP</p>
       <h1>Completa los datos de tu viaje</h1>
       <p class="header-text">
-        Ajusta tu búsqueda con fechas, personas, tipo de plan y presupuesto para obtener
-        opciones más adecuadas.
+        Ajusta tu búsqueda con fechas, personas, tipo de plan y presupuesto para obtener opciones más adecuadas.
       </p>
     </div>
 
@@ -146,32 +186,33 @@ const enviar = async () => {
     <div class="form-card">
       <div class="form-grid">
         <div class="field full">
+          <label for="nombre">Nombre</label>
+          <input
+            id="nombre"
+            v-model="form.nombre"
+            type="text"
+            placeholder="Nombre de la persona que hace la reserva"
+          />
+        </div>
+
+        <div class="field full">
           <label for="destino">Destino</label>
-          <input id="destino" v-model="form.destino" type="text" placeholder="Ej: Tokio" />
+          <input
+            id="destino"
+            v-model="form.destino"
+            type="text"
+            placeholder="Ej: Tokio, Japón"
+          />
         </div>
 
         <div class="field">
           <label for="personas">Nº de personas</label>
-          <input id="personas" v-model="form.personas" type="number" min="1" />
-        </div>
-
-        <div class="field">
-          <label for="planTipo">Plan</label>
-          <select id="planTipo" v-model="form.planTipo">
-            <option v-for="opcion in opcionesPlan" :key="opcion.value" :value="opcion.value">
-              {{ opcion.label }}
-            </option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="fechaInicio">Fecha ida</label>
-          <input id="fechaInicio" v-model="form.fechaInicio" type="date" />
-        </div>
-
-        <div class="field">
-          <label for="fechaFin">Fecha vuelta</label>
-          <input id="fechaFin" v-model="form.fechaFin" type="date" />
+          <input
+            id="personas"
+            v-model="form.personas"
+            type="number"
+            min="1"
+          />
         </div>
 
         <div class="field">
@@ -187,10 +228,54 @@ const enviar = async () => {
 
         <div class="field">
           <label for="tipoPresupuesto">Tipo de presupuesto</label>
-          <select id="tipoPresupuesto" v-model="form.tipoPresupuesto">
+          <select
+            id="tipoPresupuesto"
+            v-model="form.tipoPresupuesto"
+            :disabled="form.presupuesto === ''"
+          >
             <option value="total">Total</option>
             <option value="individual">Individual</option>
           </select>
+        </div>
+
+        <div class="field">
+          <label for="fechaInicio">Fecha ida</label>
+          <input
+            id="fechaInicio"
+            v-model="form.fechaInicio"
+            type="date"
+          />
+        </div>
+
+        <div class="field">
+          <label for="fechaFin">Fecha vuelta</label>
+          <input
+            id="fechaFin"
+            v-model="form.fechaFin"
+            type="date"
+          />
+        </div>
+      </div>
+
+      <div class="plans-section">
+        <div class="section-title-row">
+          <h2>Tipo de plan</h2>
+          <span class="section-note">
+            Puedes elegir una o varias opciones.
+          </span>
+        </div>
+
+        <div class="plans-grid">
+          <button
+            v-for="opcion in opcionesPlan"
+            :key="opcion.value"
+            type="button"
+            class="plan-chip"
+            :class="{ active: form.planTipo.includes(opcion.value) }"
+            @click="togglePlan(opcion.value)"
+          >
+            {{ opcion.label }}
+          </button>
         </div>
       </div>
 
@@ -198,15 +283,24 @@ const enviar = async () => {
         <div class="section-title-row">
           <h2>Correos de viajeros</h2>
           <span class="section-note">
-            Con 2 o más personas, los 2 primeros correos son obligatorios.
+            Si viajan 2 o más personas, los 2 primeros correos son obligatorios.
           </span>
         </div>
 
         <div class="emails-grid">
-          <div class="field" v-for="(correo, index) in form.correos" :key="index">
+          <div
+            class="field"
+            v-for="(correo, index) in form.correos"
+            :key="index"
+          >
             <label :for="`correo-${index}`">
               Correo {{ index + 1 }}
-              <span v-if="Number(form.personas) >= 2 && index < 2" class="required-mark">*</span>
+              <span
+                v-if="Number(form.personas) >= 2 && index < 2"
+                class="required-mark"
+              >
+                *
+              </span>
             </label>
             <input
               :id="`correo-${index}`"
@@ -218,10 +312,16 @@ const enviar = async () => {
         </div>
       </div>
 
-      <p v-if="error" class="error-message">{{ error }}</p>
+      <p v-if="error" class="error-message">
+        {{ error }}
+      </p>
 
       <div class="actions">
-        <button class="primary-btn" @click="enviar" :disabled="cargando">
+        <button
+          class="primary-btn"
+          @click="enviarFormulario"
+          :disabled="cargando"
+        >
           {{ cargando ? "Guardando..." : "Buscar planes" }}
         </button>
       </div>
@@ -327,6 +427,7 @@ const enviar = async () => {
   box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);
 }
 
+.plans-section,
 .emails-section {
   margin-top: 30px;
   padding-top: 26px;
@@ -350,6 +451,29 @@ const enviar = async () => {
 .section-note {
   color: #64748b;
   font-size: 0.95rem;
+}
+
+.plans-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.plan-chip {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.plan-chip.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
 }
 
 .emails-grid {
