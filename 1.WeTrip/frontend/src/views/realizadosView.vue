@@ -57,9 +57,6 @@ onMounted(() => {
     <div class="hero">
       <p class="eyebrow">WE TRIP</p>
       <h1>Planes realizados</h1>
-      <p class="hero-text">
-        Aquí puedes ver el historial de viajes que ya has completado.
-      </p>
     </div>
 
     <div v-if="moviendo && !cargando" class="info-box">

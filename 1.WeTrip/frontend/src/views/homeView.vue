@@ -88,11 +88,10 @@ const buscarDestino = async () => {
     <div class="hero-card">
       <p class="eyebrow">WE TRIP</p>
 
-      <h1>Organiza tu viaje de forma más fácil y ajustada a tu presupuesto</h1>
+      <h1>Empieza la aventura</h1>
 
       <p class="hero-text">
-        Busca tu destino, rellena tu formulario y descubre opciones de viaje
-        pensadas para ti.
+        ¿Adonde nos vamos?
       </p>
 
       <div class="search-box">

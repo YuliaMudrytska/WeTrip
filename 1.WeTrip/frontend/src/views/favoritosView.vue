@@ -54,7 +54,7 @@ onMounted(() => {
       <p class="eyebrow">WE TRIP</p>
       <h1>Tus favoritos</h1>
       <p class="hero-text">
-        Aquí puedes ver y gestionar los planes que has guardado.
+        Planes ha realizar.
       </p>
     </div>
 

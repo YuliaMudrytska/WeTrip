@@ -9,7 +9,6 @@ import headerBar from "../components/headerBar.vue";
     <div class="card">
       <p class="eyebrow">WE TRIP</p>
       <h1>Notificaciones</h1>
-      <p>Aquí se mostrarán los avisos relacionados con viajes y cambios.</p>
     </div>
   </section>
 </template>

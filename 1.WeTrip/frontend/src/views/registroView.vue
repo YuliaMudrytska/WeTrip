@@ -60,9 +60,6 @@ const registrarse = async () => {
     <div class="auth-card">
       <p class="eyebrow">WE TRIP</p>
       <h1>Registrarte</h1>
-      <p class="auth-text">
-        Crea tu cuenta para guardar planes, reservar viajes y acceder a tu historial.
-      </p>
 
       <div class="form-grid">
         <div class="field">
@@ -93,7 +90,7 @@ const registrarse = async () => {
             id="password"
             v-model="form.password"
             type="password"
-            placeholder="Crea una contraseña"
+            placeholder="Abcd567@"
             @keyup.enter="registrarse"
           />
         </div>

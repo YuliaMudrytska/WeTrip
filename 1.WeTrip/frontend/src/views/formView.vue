@@ -173,9 +173,9 @@ const enviarFormulario = async () => {
   <section class="form-page">
     <div class="form-header">
       <p class="eyebrow">WE TRIP</p>
-      <h1>Completa los datos de tu viaje</h1>
+      <h1>Estas a un paso de tu próximo viaje</h1>
       <p class="header-text">
-        Ajusta tu búsqueda con fechas, personas, tipo de plan y presupuesto para obtener opciones más adecuadas.
+        Rellena el formulario y haz las maletas.
       </p>
     </div>
 
@@ -191,7 +191,7 @@ const enviarFormulario = async () => {
             id="nombre"
             v-model="form.nombre"
             type="text"
-            placeholder="Nombre de la persona que hace la reserva"
+            placeholder="nombre de tu viaje o tu nombre"
           />
         </div>
 

@@ -179,8 +179,7 @@ onMounted(async () => {
       <p class="eyebrow">WE TRIP</p>
       <h1>Elige las mejores opciones para tu viaje</h1>
       <p class="hero-text">
-        Selecciona entre <strong>2</strong> y <strong>10</strong> opciones para
-        comparar tus planes antes de continuar.
+        Selecciona entre <strong>2</strong> y <strong>10</strong> opciones.
       </p>
     </div>
 

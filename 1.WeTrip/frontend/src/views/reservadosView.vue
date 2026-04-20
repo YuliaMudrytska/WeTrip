@@ -42,10 +42,7 @@ onMounted(() => {
   <section class="reservados-page">
     <div class="hero">
       <p class="eyebrow">WE TRIP</p>
-      <h1>Tus reservas</h1>
-      <p class="hero-text">
-        Aquí puedes ver los planes que ya has reservado.
-      </p>
+      <h1>Tus reservas</h1>      
     </div>
 
     <div v-if="cargando" class="state-box">

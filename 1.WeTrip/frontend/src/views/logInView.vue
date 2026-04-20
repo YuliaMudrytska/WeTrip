@@ -49,10 +49,6 @@ const iniciarSesion = async () => {
     <div class="auth-card">
       <p class="eyebrow">WE TRIP</p>
       <h1>LogIn</h1>
-      <p class="auth-text">
-        Accede a tu cuenta para guardar favoritos, gestionar reservas y ver tu historial.
-      </p>
-
       <div class="form-grid">
         <div class="field">
           <label for="email">Correo electrónico</label>
