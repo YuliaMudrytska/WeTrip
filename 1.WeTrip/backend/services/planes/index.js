@@ -1,4 +1,6 @@
 const Plan = require("../../models/plan");
+require("../../models/destino");
+
 const { calcularPresupuestoPorPersona } = require("./calcularPresupuesto");
 const { filtrarPlanes } = require("./filtrarPlanes");
 const { evaluarCambios } = require("./evaluarCambios");
@@ -12,7 +14,7 @@ const generarPlanes = async (busqueda) => {
     planTipo
   } = busqueda;
 
-  const presupuestoPorPersona = calcularPresupuestoPorPersona(
+  const presupuestoPorPersona = calcularPresupuestoPorPersona( 
     presupuesto,
     tipoPresupuesto,
     personas

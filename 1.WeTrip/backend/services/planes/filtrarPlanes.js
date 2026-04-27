@@ -16,15 +16,44 @@ const filtrarPlanes = (planes, opciones = {}) => {
     resultado = resultado.filter((plan) => planTipo.includes(plan.tipo));
   }
 
-  // Filtrar por presupuesto
+  // Si no hay presupuesto, mostramos planes hasta 500€/persona
   if (presupuestoPorPersona === null) {
     resultado = resultado.filter((plan) => plan.precioBasePorPersona <= 500);
-    mensaje = "El coste mínimo parte de 500€ por persona";
-  } else {
-    resultado = resultado.filter(
-      (plan) => plan.precioBasePorPersona <= presupuestoPorPersona
+
+    resultado.sort(
+      (a, b) => a.precioBasePorPersona - b.precioBasePorPersona
     );
+
+    mensaje = "El coste mínimo parte de 500€ por persona";
+
+    return {
+      planesFiltrados: resultado,
+      mensaje
+    };
   }
+
+  const presupuesto = Number(presupuestoPorPersona);
+
+  const limiteSuperior = presupuesto + 100;
+  const limiteInferior = Math.max(0, presupuesto - 100);
+
+  const planesSuperiores = resultado
+    .filter(
+      (plan) =>
+        plan.precioBasePorPersona >= presupuesto &&
+        plan.precioBasePorPersona <= limiteSuperior
+    )
+    .sort((a, b) => a.precioBasePorPersona - b.precioBasePorPersona);
+
+  const planesInferiores = resultado
+    .filter(
+      (plan) =>
+        plan.precioBasePorPersona < presupuesto &&
+        plan.precioBasePorPersona >= limiteInferior
+    )
+    .sort((a, b) => b.precioBasePorPersona - a.precioBasePorPersona);
+
+  resultado = [...planesSuperiores, ...planesInferiores];
 
   return {
     planesFiltrados: resultado,

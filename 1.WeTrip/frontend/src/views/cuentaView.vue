@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import headerBar from "../components/headerBar.vue";
 
 const router = useRouter();
 
@@ -17,6 +18,8 @@ onMounted(() => {
 
     usuario.value = JSON.parse(user);
   } catch (error) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     router.push("/login");
   }
 });
@@ -30,21 +33,32 @@ const cerrarSesion = () => {
 </script>
 
 <template>
+  <headerBar />
+
   <section class="page">
     <div class="card">
       <p class="eyebrow">WE TRIP</p>
       <h1>Mi cuenta</h1>
 
       <div v-if="usuario" class="user-info">
-        <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
-        <p><strong>Email:</strong> {{ usuario.email }}</p>
+        <div class="avatar">
+          {{ usuario.nombre?.charAt(0).toUpperCase() || "U" }}
+        </div>
+
+        <p>
+          <strong>Nombre:</strong>
+          {{ usuario.nombre }}
+        </p>
+
+        <p>
+          <strong>Email:</strong>
+          {{ usuario.email }}
+        </p>
       </div>
 
-      <div class="actions">
-        <button class="logout-btn" @click="cerrarSesion">
-          Cerrar sesión
-        </button>
-      </div>
+      <button class="logout-btn" @click="cerrarSesion">
+        Cerrar sesión
+      </button>
     </div>
   </section>
 </template>
@@ -78,18 +92,28 @@ const cerrarSesion = () => {
 }
 
 h1 {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   color: #0f172a;
 }
 
 .user-info {
-  margin-bottom: 24px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 28px;
   color: #334155;
-  line-height: 1.6;
 }
 
-.actions {
-  margin-top: 20px;
+.avatar {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 1.8rem;
+  font-weight: 800;
 }
 
 .logout-btn {
@@ -100,5 +124,9 @@ h1 {
   color: white;
   font-weight: 700;
   cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
 }
 </style>

@@ -69,7 +69,7 @@ const buscarDestino = async () => {
       router.push({
         path: "/planes",
         query: {
-          id: data.ultimaBusqueda._id
+          id: data.ultimaBusqueda.busquedaId
         }
       });
     }

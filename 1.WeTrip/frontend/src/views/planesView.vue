@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../api/api";
 import headerBar from "../components/headerBar.vue";
+import planCard from "../components/planCard.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -182,6 +183,16 @@ onMounted(async () => {
         Selecciona entre <strong>2</strong> y <strong>10</strong> opciones.
       </p>
     </div>
+
+    <planCard
+      v-for="plan in planes"
+      :key="plan._id"
+      :plan="plan"
+      :seleccionado="estaSeleccionado(plan._id)"
+      :favorito="esFavorito(plan._id)"
+      @toggle-seleccion="toggleSeleccion"
+      @toggle-favorito="toggleFavorito"
+    />
 
     <div v-if="mensajeBackend || mensajeMaximo" class="top-alert">
       <p v-if="mensajeBackend">{{ mensajeBackend }}</p>

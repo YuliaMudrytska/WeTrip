@@ -88,6 +88,7 @@ const crearBusqueda = async (req, res) => {
       await User.findByIdAndUpdate(userId, {
         $push: {
           historialBusquedas: {
+            busquedaId: nuevaBusqueda._id,
             nombre: nombre.trim(),
             destino: destino.trim(),
             personas: personasNumero,

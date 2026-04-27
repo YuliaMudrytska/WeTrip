@@ -123,7 +123,12 @@ const planRealizadoSchema = new mongoose.Schema(
 
 const historialBusquedaSchema = new mongoose.Schema(
   {
-  nombre: {
+    busquedaId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Busqueda"
+    },
+    
+    nombre: {
       type: String,
       required: true,
       trim: true
