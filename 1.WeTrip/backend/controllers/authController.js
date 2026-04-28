@@ -51,7 +51,8 @@ const register = async (req, res) => {
       user: {
         _id: nuevoUsuario._id,
         nombre: nuevoUsuario.nombre,
-        email: nuevoUsuario.email
+        email: nuevoUsuario.email,
+        imagenPerfil: nuevoUsuario.imagenPerfil
       },
       token: generarToken(nuevoUsuario._id)
     });
@@ -95,7 +96,8 @@ const login = async (req, res) => {
       user: {
         _id: usuario._id,
         nombre: usuario.nombre,
-        email: usuario.email
+        email: usuario.email,
+        imagenPerfil: usuario.imagenPerfil
       },
       token: generarToken(usuario._id)
     });
@@ -125,8 +127,59 @@ const getMe = async (req, res) => {
   }
 };
 
+const actualizarPerfil = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nombre, password, imagenPerfil } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
+    if (nombre && nombre.trim() !== "") {
+      user.nombre = nombre.trim();
+    }
+
+    if (imagenPerfil !== undefined) {
+      user.imagenPerfil = imagenPerfil;
+    }
+
+    if (password && password.trim() !== "") {
+      if (password.length < 6) {
+        return res.status(400).json({
+          msg: "La contraseña debe tener al menos 6 caracteres."
+        });
+      }
+
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    res.json({
+      msg: "Perfil actualizado correctamente",
+     user: {
+        _id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        imagenPerfil: user.imagenPerfil
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Error actualizando perfil"
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
-  getMe
+  getMe,
+  actualizarPerfil
 };

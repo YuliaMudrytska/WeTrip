@@ -4,7 +4,8 @@ const router = express.Router();
 const {
   register,
   login,
-  getMe
+  getMe,
+  actualizarPerfil
 } = require("../controllers/authController");
 
 const { protect } = require("../middlewares/authMiddleware");
@@ -17,5 +18,8 @@ router.post("/login", login);
 
 // Usuario autenticado
 router.get("/me", protect, getMe);
+
+//actualizar datos
+router.put("/me", protect, actualizarPerfil);
 
 module.exports = router;

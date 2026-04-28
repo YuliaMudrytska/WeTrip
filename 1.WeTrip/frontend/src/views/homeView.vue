@@ -111,36 +111,6 @@ const buscarDestino = async () => {
         {{ error }}
       </p>
 
-      <div class="hero-info">
-        <div class="info-pill">Búsqueda rápida</div>
-        <div class="info-pill">Planes por presupuesto</div>
-        <div class="info-pill">Comparación de opciones</div>
-      </div>
-    </div>
-
-    <div class="featured-section">
-      <div class="featured-card">
-        <span class="featured-tag">Destinos populares</span>
-        <h2>Ideas para empezar</h2>
-
-        <div class="destinations-grid">
-          <button class="destination-item" @click="destino = 'Ámsterdam, Países Bajos'; buscarDestino()">
-            Ámsterdam, Países Bajos
-          </button>
-
-          <button class="destination-item" @click="destino = 'Tokio, Japón'; buscarDestino()">
-            Tokio, Japón
-          </button>
-
-          <button class="destination-item" @click="destino = 'Bogotá, Colombia'; buscarDestino()">
-            Bogotá, Colombia
-          </button>
-
-          <button class="destination-item" @click="destino = 'Segovia, España'; buscarDestino()">
-            Segovia, España
-          </button>
-        </div>
-      </div>
     </div>
   </section>
 </template>

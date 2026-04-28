@@ -69,8 +69,14 @@ const cerrarSesion = () => {
           🔍
         </button>
 
-        <button class="icon-btn" @click="togglePerfil" aria-label="Perfil">
-          👤
+        <button class="icon-btn profile-icon-btn" @click="togglePerfil" aria-label="Perfil">
+          <img
+            v-if="usuario?.imagenPerfil"
+            :src="usuario.imagenPerfil"
+            alt="Perfil"
+            class="header-profile-img"
+          />
+          <span v-else>👤</span>
         </button>
       </div>
     </div>
@@ -89,7 +95,16 @@ const cerrarSesion = () => {
       <div v-if="perfilAbierto" class="profile-panel">
         <template v-if="usuarioLogueado">
           <div class="profile-user">
-            <div class="profile-avatar">👤</div>
+
+            <div class="profile-avatar">
+              <img
+                v-if="usuario?.imagenPerfil"
+                :src="usuario.imagenPerfil"
+                alt="Imagen de perfil"
+              />
+              <span v-else>👤</span>
+            </div>
+            
             <div>
               <p class="profile-name">{{ usuario && usuario.nombre }}</p>
               <p class="profile-subtitle">Cuenta activa</p>
@@ -178,6 +193,27 @@ const cerrarSesion = () => {
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.profile-icon-btn {
+  overflow: hidden;
+  padding: 0;
+}
+
+.header-profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar {
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .icon-btn:hover {

@@ -175,7 +175,10 @@ onMounted(async () => {
 
 <template>
   <headerBar />
+
   <section class="planes-page">
+
+    <!-- HERO -->
     <div class="hero">
       <p class="eyebrow">WE TRIP</p>
       <h1>Elige las mejores opciones para tu viaje</h1>
@@ -184,21 +187,13 @@ onMounted(async () => {
       </p>
     </div>
 
-    <planCard
-      v-for="plan in planes"
-      :key="plan._id"
-      :plan="plan"
-      :seleccionado="estaSeleccionado(plan._id)"
-      :favorito="esFavorito(plan._id)"
-      @toggle-seleccion="toggleSeleccion"
-      @toggle-favorito="toggleFavorito"
-    />
-
+    <!-- ALERTAS -->
     <div v-if="mensajeBackend || mensajeMaximo" class="top-alert">
       <p v-if="mensajeBackend">{{ mensajeBackend }}</p>
       <p v-if="mensajeMaximo">{{ mensajeMaximo }}</p>
     </div>
 
+    <!-- RESUMEN -->
     <div class="summary-bar">
       <div class="summary-box">
         <span class="summary-label">Seleccionados</span>
@@ -219,6 +214,7 @@ onMounted(async () => {
       </button>
     </div>
 
+    <!-- ESTADOS -->
     <div v-if="cargando" class="state-box">
       Cargando planes...
     </div>
@@ -231,71 +227,24 @@ onMounted(async () => {
       No se han encontrado planes para esta búsqueda.
     </div>
 
+    <!-- GRID DE PLANES (ÚNICO RENDER) -->
     <div v-else class="plans-grid">
-      <article
+      <planCard
         v-for="plan in planes"
         :key="plan._id"
-        class="plan-card"
-        :class="{ selected: estaSeleccionado(plan._id) }"
-      >
-        <button
-          class="favorite-btn"
-          @click="toggleFavorito(plan)"
-          aria-label="Guardar en favoritos"
-        >
-          {{ esFavorito(plan._id) ? "♥" : "♡" }}
-        </button>
-
-        <div class="image-wrapper">
-          <img
-            :src="plan.imagen || 'https://via.placeholder.com/500x300?text=WE+TRIP'"
-            :alt="`${plan.destinoId?.ciudad || 'Destino'}, ${plan.destinoId?.pais || ''}`"
-          />
-          <span v-if="estaSeleccionado(plan._id)" class="selected-badge">
-            Seleccionado
-          </span>
-        </div>
-
-        <div class="card-content">
-          <h2 class="title">
-            {{ plan.destinoId?.ciudad || "Destino" }}, {{ plan.destinoId?.pais || "País" }}
-          </h2>
-
-          <p class="description">
-            {{ plan.descripcion || "Plan de viaje personalizado para tu búsqueda." }}
-          </p>
-
-          <div class="features">
-            <span :class="{ active: plan.incluye?.transporte }">Transporte</span>
-            <span :class="{ active: plan.incluye?.alojamiento }">Alojamiento</span>
-            <span :class="{ active: plan.incluye?.rutas }">Rutas</span>
-          </div>
-
-          <div class="info-row">
-            <p class="price">
-              {{ plan.precioBasePorPersona }} €
-              <small>/ persona</small>
-            </p>
-
-            <p class="capacity">
-              Máx. {{ plan.maxPersonas }} personas
-            </p>
-          </div>
-
-          <button
-            class="select-btn"
-            :class="{ disabled: !estaSeleccionado(plan._id) && maximoAlcanzado }"
-            @click="toggleSeleccion(plan)"
-          >
-            {{ estaSeleccionado(plan._id) ? "Quitar opción" : "Añadir opción" }}
-          </button>
-        </div>
-      </article>
+        :plan="plan"
+        :seleccionado="estaSeleccionado(plan._id)"
+        :favorito="esFavorito(plan._id)"
+        @toggle-seleccion="toggleSeleccion"
+        @toggle-favorito="toggleFavorito"
+      />
     </div>
 
+    <!-- ALERTA INFERIOR -->
     <div v-if="mensajeMaximo" class="bottom-alert">
       {{ mensajeMaximo }}
     </div>
+
   </section>
 </template>
 
