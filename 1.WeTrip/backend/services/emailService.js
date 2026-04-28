@@ -50,7 +50,38 @@ const enviarCorreoReal = async (correos, asunto, mensaje) => {
   }
 };
 
+
+const enviarCorreoPropuesta = async (correos, link, destino) => {
+  const asunto = `WeTrip - Nueva propuesta de viaje a ${destino}`;
+
+  const mensaje = `
+Se ha creado una propuesta de viaje a ${destino}.
+
+Puedes ver los planes y votar en el siguiente enlace:
+
+${link}
+
+Selecciona el plan que prefieras para continuar con la reserva.
+
+— WeTrip
+`;
+
+  // envío real para despliegue
+  const usarEnvioReal = false;
+
+  if (usarEnvioReal) {
+    return await enviarCorreoReal(correos, asunto, mensaje);
+  } else {
+    console.log("📩 SIMULACIÓN EMAIL:");
+    console.log("Correos:", correos);
+    console.log("Link:", link);
+
+    return await simularEnvioCorreo(correos, asunto, mensaje);
+  }
+};
+
 module.exports = {
   simularEnvioCorreo,
-  enviarCorreoReal
+  enviarCorreoReal,
+  enviarCorreoPropuesta
 };

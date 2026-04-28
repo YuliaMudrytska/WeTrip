@@ -84,6 +84,7 @@ const cerrarSesion = () => {
     <transition name="fade-slide">
       <div v-if="menuAbierto" class="menu-panel">
         <button class="menu-item" @click="navegar('/favoritos')">Favoritos</button>
+        <button class="menu-item" @click="navegar('/propuestas')">Mis Propuestas</button>
         <button class="menu-item" @click="navegar('/reservados')">Reservados</button>
         <button class="menu-item" @click="navegar('/realizados')">Planes realizados</button>
         <button class="menu-item" @click="navegar('/notificaciones')">Notificaciones</button>

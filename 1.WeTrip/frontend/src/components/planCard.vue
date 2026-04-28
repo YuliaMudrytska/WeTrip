@@ -2,7 +2,11 @@
 const props = defineProps({
   plan: Object,
   seleccionado: Boolean,
-  favorito: Boolean
+  favorito: Boolean,
+  mostrarAcciones: {
+    type: Boolean,
+    default: true
+  }
 });
 
 const emit = defineEmits([
@@ -23,10 +27,14 @@ const handleFavorito = () => {
   <article class="card" :class="{ selected: seleccionado }">
 
     <!-- FAVORITO -->
-    <button class="fav-btn" @click="handleFavorito">
+    <button
+      v-if="mostrarAcciones"
+      class="fav-btn"
+      @click="handleFavorito"
+    >
       {{ favorito ? "♥" : "♡" }}
     </button>
-
+     
     <!-- IMAGEN -->
     <div class="image">
       <img
@@ -58,10 +66,13 @@ const handleFavorito = () => {
     </div>
 
     <!-- BOTÓN + -->
-    <button class="add-btn" @click="handleSeleccion">
+    <button
+      v-if="mostrarAcciones"
+      class="add-btn"
+      @click="handleSeleccion"
+    >
       {{ seleccionado ? "✓" : "+" }}
     </button>
-
   </article>
 </template>
 

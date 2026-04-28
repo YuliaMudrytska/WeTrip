@@ -15,7 +15,7 @@ const planes = ref([]);
 const seleccionados = ref([]);
 const favoritos = ref([]);
 const busquedaActual = ref(null);
-const guardandoReservas = ref(false);
+const creandoPropuesta = ref(false);
 
 const maxSeleccion = 10;
 const minSeleccion = 2;
@@ -102,45 +102,33 @@ const continuar = async () => {
   const token = localStorage.getItem("token");
 
   if (!token) {
-    alert("Debes iniciar sesión para reservar planes.");
+    alert("Debes iniciar sesión para crear una propuesta.");
     router.push("/login");
     return;
   }
 
-  if (!busquedaActual.value) {
+  const busquedaId = route.query.id;
+
+  if (!busquedaId) {
     alert("No se ha encontrado la búsqueda asociada.");
     return;
   }
 
   try {
-    guardandoReservas.value = true;
+    creandoPropuesta.value = true;
 
-    for (const plan of seleccionados.value) {
-      const destinoFormateado = [plan.destinoId?.ciudad, plan.destinoId?.pais]
-        .filter(Boolean)
-        .join(", ");
+    const { data } = await api.post("/propuestas", {
+      busquedaId,
+      planes: seleccionados.value.map((plan) => plan._id)
+    });
 
-      await api.post("/reservas", {
-        planId: plan._id,
-        destino: destinoFormateado,
-        personas: busquedaActual.value.personas,
-        fechaInicio: busquedaActual.value.fechaInicio,
-        fechaFin: busquedaActual.value.fechaFin,
-        precioFinal:
-          Number(plan.precioBasePorPersona) * Number(busquedaActual.value.personas),
-        presupuesto: busquedaActual.value.presupuesto,
-        tipoPresupuesto: busquedaActual.value.tipoPresupuesto,
-        planTipo: busquedaActual.value.planTipo
-      });
-    }
-
-    alert("Reservas realizadas correctamente.");
-    router.push("/reservados");
+    alert("Propuesta creada correctamente.");
+    router.push(`/propuesta/${data.propuestaId}`);
   } catch (err) {
     console.error(err);
-    alert(err?.response?.data?.msg || "No se pudieron guardar las reservas.");
+    alert(err?.response?.data?.msg || "No se pudo crear la propuesta.");
   } finally {
-    guardandoReservas.value = false;
+    creandoPropuesta.value = false;
   }
 };
 
@@ -206,12 +194,12 @@ onMounted(async () => {
       </div>
 
       <button
-        class="continue-btn"
-        :disabled="!seleccionMinimaCumplida || guardandoReservas"
-        @click="continuar"
-      >
-        {{ guardandoReservas ? "Guardando reservas..." : "Continuar" }}
-      </button>
+          class="continue-btn"
+          :disabled="!seleccionMinimaCumplida || creandoPropuesta"
+          @click="continuar"
+        >
+          {{ creandoPropuesta ? "Creando propuesta..." : "Crear propuesta" }}
+        </button>
     </div>
 
     <!-- ESTADOS -->

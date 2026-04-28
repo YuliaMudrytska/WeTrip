@@ -29,6 +29,17 @@ const routes = [
     component: planesView
   },
   {
+    path: "/propuestas",
+    name: "propuestas",
+    component: () => import("../views/propuestasView.vue"),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/propuesta/:id",
+    name: "propuesta",
+    component: () => import("../views/propuestaView.vue")
+  },
+  {
     path: "/favoritos",
     name: "favoritos",
     component: favoritosView,
