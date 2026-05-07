@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "../api/api";
+import headerBar from "../components/headerBar.vue";
 
 const router = useRouter();
 
@@ -45,6 +46,8 @@ const iniciarSesion = async () => {
 </script>
 
 <template>
+  <headerBar />
+
   <section class="auth-page">
     <div class="auth-card">
       <p class="eyebrow">WE TRIP</p>
@@ -59,6 +62,8 @@ const iniciarSesion = async () => {
             placeholder="correo@ejemplo.com"
             @keyup.enter="iniciarSesion"
           />
+
+          
         </div>
 
         <div class="field">
@@ -79,6 +84,16 @@ const iniciarSesion = async () => {
         <button class="primary-btn" @click="iniciarSesion" :disabled="cargando">
           {{ cargando ? "Entrando..." : "Entrar" }}
         </button>
+
+        <button class="secondary-btn" @click="router.push('/')">
+            Volver al inicio
+          </button>
+
+          <p class="switch-text">
+            ¿No tienes cuenta?
+            <button @click="router.push('/registro')">Regístrate</button>
+          </p>
+
       </div>
     </div>
   </section>
@@ -187,5 +202,38 @@ h1 {
   background: #94a3b8;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.secondary-btn {
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  border-radius: 16px;
+  padding: 15px 24px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 40px;
+}
+
+.secondary-btn:hover {
+  background: #cbd5e1;
+}
+
+.switch-text {
+  margin: 18px 0 0;
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.switch-text button {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 800;
+  cursor: pointer;
 }
 </style>

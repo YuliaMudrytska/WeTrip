@@ -18,6 +18,7 @@ const confirmando = ref(false);
 const usuarioGuardado = localStorage.getItem("user");
 const usuarioActual = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
 
+
 const esCreador = computed(() => {
   if (!propuesta.value || !usuarioActual) return false;
 
@@ -71,6 +72,11 @@ const cargarPropuesta = async () => {
 };
 
 const votar = async (planId) => {
+  if (propuesta.value.estado !== "pendiente") {
+    alert("La propuesta ya está cerrada.");
+    return;
+  }
+
   if (!correo.value.trim()) {
     alert("Introduce tu correo para votar.");
     return;
@@ -157,7 +163,7 @@ onMounted(() => {
       </div>
 
       <div v-if="propuesta.estado === 'confirmada'" class="success-box">
-        Esta propuesta ya ha sido confirmada.
+        Propuesta confirmada exitosamente.
       </div>
 
       <div v-if="propuesta.estado === 'pendiente'" class="correo-box">
@@ -198,18 +204,24 @@ onMounted(() => {
             v-if="propuesta.estado === 'pendiente'"
             class="vote-btn"
             @click="votar(plan._id)"
-            :disabled="votando"
+            :disabled="votando || propuesta.estado !== 'pendiente'"
           >
             {{ votando ? "Guardando voto..." : "Votar este plan" }}
           </button>
 
           <button
-            v-if="propuesta.estado === 'pendiente' && esCreador"
+            v-if="esCreador"
             class="confirm-btn"
             @click="confirmarPlan(plan._id)"
-            :disabled="confirmando"
+            :disabled="confirmando || propuesta.estado !== 'pendiente'"
           >
-            {{ confirmando ? "Confirmando..." : "Confirmar este plan" }}
+            {{
+              propuesta.estado === "confirmada"
+                ? "Plan ya confirmado"
+                : confirmando
+                ? "Confirmando..."
+                : "Confirmar este plan"
+            }}
           </button>
         </div>
       </div>

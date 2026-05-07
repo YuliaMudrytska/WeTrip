@@ -52,6 +52,38 @@ const searchDestino = async (req, res) => {
   }
 };
 
+const getHistorialBusquedas = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("historialBusquedas");
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "Usuario no encontrado"
+      });
+    }
+
+    const historial = user.historialBusquedas
+      .map((busqueda) => ({
+        destino: busqueda.destino,
+        nombre: busqueda.nombre,
+        busquedaId: busqueda.busquedaId || busqueda._id
+      }))
+      .reverse();
+
+    res.json({
+      historial
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Error obteniendo historial"
+    });
+  }
+};
+
 module.exports = {
-  searchDestino
+  searchDestino,
+  getHistorialBusquedas
 };

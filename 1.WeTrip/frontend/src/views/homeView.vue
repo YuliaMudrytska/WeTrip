@@ -1,14 +1,21 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import api from "../api/api";
 import headerBar from "../components/headerBar.vue";
 
 const router = useRouter();
 
+onMounted(() => {
+  cargarHistorial();
+});
+
+
 const destino = ref("");
 const cargando = ref(false);
 const error = ref("");
+const historial = ref([]);
+const mostrarSugerencias = ref(false);
 
 const buscarDestino = async () => {
   error.value = "";
@@ -80,6 +87,36 @@ const buscarDestino = async () => {
     cargando.value = false;
   }
 };
+
+const cargarHistorial = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    const { data } = await api.get("/search/historial");
+    historial.value = data.historial || [];
+  } catch (err) {
+    console.error("Error cargando historial:", err);
+  }
+};
+
+const sugerenciasFiltradas = computed(() => {
+  const texto = destino.value.trim().toLowerCase();
+
+  if (!texto) return historial.value.slice(0, 5);
+
+  return historial.value
+    .filter((item) =>
+      item.destino.toLowerCase().includes(texto)
+    )
+    .slice(0, 5);
+});
+
+const seleccionarSugerencia = (item) => {
+  destino.value = item.destino;
+  mostrarSugerencias.value = false;
+};
 </script>
 
 <template>
@@ -101,6 +138,20 @@ const buscarDestino = async () => {
           placeholder="Introduce tu destino"
           @keyup.enter="buscarDestino"
         />
+
+        <div
+          v-if="mostrarSugerencias && sugerenciasFiltradas.length > 0"
+          class="suggestions-box"
+        >
+          <button
+            v-for="item in sugerenciasFiltradas"
+            :key="item.busquedaId"
+            class="suggestion-item"
+            @click="seleccionarSugerencia(item)"
+          >
+            {{ item.destino }}
+          </button>
+        </div>
 
         <button @click="buscarDestino" :disabled="cargando">
           {{ cargando ? "Buscando..." : "Buscar" }}
@@ -169,6 +220,7 @@ const buscarDestino = async () => {
   border-radius: 22px;
   border: 1px solid #dbeafe;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  position: relative;
 }
 
 .search-box input {
@@ -198,6 +250,43 @@ const buscarDestino = async () => {
   background: #94a3b8;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.suggestions-box {
+  position: absolute;
+  left: 12px;
+  right: 140px;
+  top: calc(100% + 8px);
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  background: white;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+}
+
+.suggestion-item {
+  border: none;
+  background: #f8fafc;
+  color: #0f172a;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+
+.suggestion-item:active {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 .error-message {
@@ -284,6 +373,11 @@ const buscarDestino = async () => {
   .search-box button {
     width: 100%;
   }
+
+  .suggestions-box {
+    right: 12px;
+  }
+
 
   .destinations-grid {
     grid-template-columns: 1fr;
