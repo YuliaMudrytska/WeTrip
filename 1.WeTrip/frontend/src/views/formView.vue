@@ -10,6 +10,7 @@ const router = useRouter();
 const cargando = ref(false);
 const error = ref("");
 const avisoPresupuesto = ref("");
+const fechaMinima = new Date().toISOString().split("T")[0];
 
 const form = ref({
   nombre: "",
@@ -165,6 +166,11 @@ const enviarFormulario = async () => {
   } finally {
     cargando.value = false;
   }
+  
+  if (new Date(form.value.fechaInicio) < new Date(fechaMinima)) {
+    error.value = "La fecha de ida no puede ser anterior a hoy.";
+    return;
+  }
 };
 </script>
 
@@ -244,6 +250,7 @@ const enviarFormulario = async () => {
             id="fechaInicio"
             v-model="form.fechaInicio"
             type="date"
+            :min="fechaMinima"
           />
         </div>
 
@@ -253,6 +260,7 @@ const enviarFormulario = async () => {
             id="fechaFin"
             v-model="form.fechaFin"
             type="date"
+            :min="form.fechaInicio || fechaMinima"
           />
         </div>
       </div>

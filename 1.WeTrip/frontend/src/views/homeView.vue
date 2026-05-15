@@ -5,12 +5,6 @@ import api from "../api/api";
 import headerBar from "../components/headerBar.vue";
 
 const router = useRouter();
-
-onMounted(() => {
-  cargarHistorial();
-});
-
-
 const destino = ref("");
 const cargando = ref(false);
 const error = ref("");
@@ -95,6 +89,7 @@ const cargarHistorial = async () => {
     if (!token) return;
 
     const { data } = await api.get("/search/historial");
+    console.log("HISTORIAL RECIBIDO:", data);
     historial.value = data.historial || [];
   } catch (err) {
     console.error("Error cargando historial:", err);
@@ -117,6 +112,28 @@ const seleccionarSugerencia = (item) => {
   destino.value = item.destino;
   mostrarSugerencias.value = false;
 };
+
+const formatearDestino = (destino) => {
+  const destinos = {
+    madrid: "España, Madrid",
+    barcelona: "España, Barcelona",
+    paris: "Francia, París",
+    parís: "Francia, París",
+    roma: "Italia, Roma",
+    venecia: "Italia, Venecia",
+    tokio: "Japón, Tokio",
+    londres: "Reino Unido, Londres",
+    bruselas: "Bélgica, Bruselas",
+    seoul: "Corea del Sur, Seoul",
+    "los angeles": "Estados Unidos, Los Angeles"
+  };
+
+  return destinos[destino.toLowerCase()] || destino;
+};
+
+onMounted(() => {
+  cargarHistorial();
+});
 </script>
 
 <template>
@@ -136,6 +153,8 @@ const seleccionarSugerencia = (item) => {
           v-model="destino"
           type="text"
           placeholder="Introduce tu destino"
+          @focus="mostrarSugerencias = true"
+          @input="mostrarSugerencias = true"
           @keyup.enter="buscarDestino"
         />
 
@@ -149,7 +168,7 @@ const seleccionarSugerencia = (item) => {
             class="suggestion-item"
             @click="seleccionarSugerencia(item)"
           >
-            {{ item.destino }}
+            {{ formatearDestino(item.destino) }}
           </button>
         </div>
 
@@ -257,7 +276,7 @@ const seleccionarSugerencia = (item) => {
   left: 12px;
   right: 140px;
   top: calc(100% + 8px);
-  z-index: 20;
+  z-index: 30;
   display: grid;
   gap: 6px;
   padding: 10px;
@@ -281,12 +300,6 @@ const seleccionarSugerencia = (item) => {
 .suggestion-item:hover {
   background: #eff6ff;
   color: #2563eb;
-}
-
-
-.suggestion-item:active {
-  background: #dbeafe;
-  color: #1e40af;
 }
 
 .error-message {

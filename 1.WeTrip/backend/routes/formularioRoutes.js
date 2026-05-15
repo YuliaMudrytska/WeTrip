@@ -6,8 +6,12 @@ const {
   getBusqueda
 } = require("../controllers/formularioController");
 
+const {
+  optionalProtect
+} = require("../middlewares/optionalAuthMiddleware");
 
-router.post("/", crearBusqueda);
+router.post("/", optionalProtect, crearBusqueda);
+
 router.get("/:id", getBusqueda);
 
 module.exports = router;
