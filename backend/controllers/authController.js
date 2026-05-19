@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const { enviarCorreoVerificacion } = require("../services/emailService");
 
 //autentifica y registra al usuario, verefica usuarios ya exixtentes y añade nuevos
 
@@ -35,10 +37,17 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHasheada = await bcrypt.hash(password, salt);
 
+    const tokenVerificacion = crypto.randomBytes(32).toString("hex");
+
+    const tokenExpira = new Date(Date.now() + 1000 * 60 * 60 * 24);
+
     const nuevoUsuario = new User({
       nombre: nombre.trim(),
       email: emailNormalizado,
       password: passwordHasheada,
+      emailVerificado: false,
+      tokenVerificacionEmail: tokenVerificacion,
+      tokenVerificacionExpira: tokenExpira,
       favoritos: [],
       reservas: [],
       planesRealizados: [],
@@ -47,6 +56,10 @@ const register = async (req, res) => {
 
     await nuevoUsuario.save();
 
+      const link = `${process.env.FRONTEND_URL || "http://localhost:5173"}/verificar-email/${tokenVerificacion}`;
+
+    await enviarCorreoVerificacion(nuevoUsuario.email, link);
+
     res.status(201).json({
       user: {
         _id: nuevoUsuario._id,
@@ -54,7 +67,8 @@ const register = async (req, res) => {
         email: nuevoUsuario.email,
         imagenPerfil: nuevoUsuario.imagenPerfil
       },
-      token: generarToken(nuevoUsuario._id)
+      token: generarToken(nuevoUsuario._id),
+      msg: "Revisa tu correo para verificar la cuenta."
     });
 
   } catch (error) {
@@ -84,6 +98,12 @@ const login = async (req, res) => {
       });
     }
 
+    if (!usuario.emailVerificado) {
+      return res.status(403).json({
+        msg: "Debes verificar tu correo antes de iniciar sesión."
+      });
+    }
+
     const passwordCorrecta = await bcrypt.compare(password, usuario.password);
 
     if (!passwordCorrecta) {
@@ -105,6 +125,39 @@ const login = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Error del servidor" });
+  }
+};
+
+//Verificación del correo electrónico
+const verificarEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const usuario = await User.findOne({
+      tokenVerificacionEmail: token,
+      tokenVerificacionExpira: { $gt: new Date() }
+    });
+
+    if (!usuario) {
+      return res.status(400).json({
+        msg: "El enlace de verificación no es válido o ha expirado."
+      });
+    }
+
+    usuario.emailVerificado = true;
+    usuario.tokenVerificacionEmail = null;
+    usuario.tokenVerificacionExpira = null;
+
+    await usuario.save();
+
+    res.json({
+      msg: "Correo verificado correctamente."
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Error verificando correo."
+    });
   }
 };
 
@@ -180,6 +233,7 @@ const actualizarPerfil = async (req, res) => {
 module.exports = {
   register,
   login,
+  verificarEmail,
   getMe,
   actualizarPerfil
 };

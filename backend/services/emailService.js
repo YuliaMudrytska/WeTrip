@@ -50,21 +50,50 @@ const enviarCorreoReal = async (correos, asunto, mensaje) => {
   }
 };
 
+const enviarCorreoVerificacion = async (email, link) => {
+  const asunto = "Verifica tu cuenta en WeTrip";
+
+  const mensaje = `
+    Hola,
+
+    Gracias por registrarte en WeTrip.
+
+    Para activar tu cuenta, confirma tu correo haciendo clic en este enlace:
+
+    ${link}
+
+    Si no has creado esta cuenta, puedes ignorar este mensaje.
+
+    — WeTrip`;
+
+  const usarEnvioReal = false;
+
+  if (usarEnvioReal) {
+    return await enviarCorreoReal([email], asunto, mensaje);
+  }
+
+  console.log("📩 SIMULACIÓN EMAIL VERIFICACIÓN:");
+  console.log("Email:", email);
+  console.log("Link:", link);
+
+  return await simularEnvioCorreo([email], asunto, mensaje);
+};
+
 
 const enviarCorreoPropuesta = async (correos, link, destino) => {
   const asunto = `WeTrip - Nueva propuesta de viaje a ${destino}`;
 
   const mensaje = `
-Se ha creado una propuesta de viaje a ${destino}.
+  Se ha creado una propuesta de viaje a ${destino}.
 
-Puedes ver los planes y votar en el siguiente enlace:
+  Puedes ver los planes y votar en el siguiente enlace:
 
-${link}
+  ${link}
 
-Selecciona el plan que prefieras para continuar con la reserva.
+  Selecciona el plan que prefieras para continuar con la reserva.
 
-— WeTrip
-`;
+  — WeTrip
+  `;
 
   // envío real para despliegue
   const usarEnvioReal = false;
@@ -83,5 +112,6 @@ Selecciona el plan que prefieras para continuar con la reserva.
 module.exports = {
   simularEnvioCorreo,
   enviarCorreoReal,
-  enviarCorreoPropuesta
+  enviarCorreoPropuesta,
+  enviarCorreoVerificacion
 };

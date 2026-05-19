@@ -204,6 +204,21 @@ const userSchema = new mongoose.Schema(
       lowercase: true
     },
 
+    emailVerificado: {
+      type: Boolean,
+      default: false
+    },
+
+    tokenVerificacionEmail: {
+      type: String,
+      default: null
+    },
+
+    tokenVerificacionExpira: {
+      type: Date,
+      default: null
+    },
+
     imagenPerfil: {
       type: String,
       default: ""
