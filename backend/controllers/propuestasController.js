@@ -289,25 +289,35 @@ const confirmarPlan = async (req, res) => {
 const getMisPropuestas = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log("USUARIO LOGUEADO:", userId);
 
     const propuestas = await Propuesta.find({
       creador: userId
     })
-    .populate({
-      path: "planes",
-      populate: {
-        path: "destinoId",
-        model: "Destino"
-      }
-    })
-    .populate("planConfirmado")
-    .sort({ createdAt: -1 });
+    
+      .populate({
+        path: "planes",
+        populate: {
+          path: "destinoId",
+          model: "Destino"
+        }
+      })
+      .populate("planConfirmado")
+      .sort({ createdAt: -1 });
+
+      console.log("PROPUESTAS ENCONTRADAS:", propuestas.length);
+
+    res.json({
+      propuestas
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       msg: "Error cargando propuestas"
     });
   }
+
+  
 };
 
 module.exports = {

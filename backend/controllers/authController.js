@@ -98,12 +98,6 @@ const login = async (req, res) => {
       });
     }
 
-    if (!usuario.emailVerificado) {
-      return res.status(403).json({
-        msg: "Debes verificar tu correo antes de iniciar sesión."
-      });
-    }
-
     const passwordCorrecta = await bcrypt.compare(password, usuario.password);
 
     if (!passwordCorrecta) {

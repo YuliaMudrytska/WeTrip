@@ -15,11 +15,16 @@ const cargarPropuestas = async () => {
     cargando.value = true;
     error.value = "";
 
+    console.log("CARGANDO PROPUESTAS...");
+
     const { data } = await api.get("/propuestas/mis-propuestas");
+
+    console.log("PROPUESTAS RECIBIDAS:", data);
+
     propuestas.value = data.propuestas || [];
   } catch (err) {
-    console.error(err);
-    error.value = err?.response?.data?.msg || "Error cargando propuestas.";
+    console.error("ERROR PROPUESTAS:", err);
+    error.value = err?.response?.data?.msg || "Error cargando propuestas";
   } finally {
     cargando.value = false;
   }
