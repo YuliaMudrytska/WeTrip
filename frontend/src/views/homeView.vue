@@ -89,7 +89,6 @@ const cargarHistorial = async () => {
     if (!token) return;
 
     const { data } = await api.get("/search/historial");
-    console.log("HISTORIAL RECIBIDO:", data);
     historial.value = data.historial || [];
   } catch (err) {
     console.error("Error cargando historial:", err);
