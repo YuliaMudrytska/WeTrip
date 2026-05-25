@@ -99,9 +99,21 @@ const cargarHistorial = async () => {
 const sugerenciasFiltradas = computed(() => {
   const texto = destino.value.trim().toLowerCase();
 
-  if (!texto) return historial.value.slice(0, 5);
+  const historialUnico = [];
+  const destinosVistos = new Set();
 
-  return historial.value
+  historial.value.forEach((item) => {
+    const destinoNormalizado = item.destino.trim().toLowerCase();
+
+    if (!destinosVistos.has(destinoNormalizado)) {
+      destinosVistos.add(destinoNormalizado);
+      historialUnico.push(item);
+    }
+  });
+
+  if (!texto) return historialUnico.slice(0, 5);
+
+  return historialUnico
     .filter((item) =>
       item.destino.toLowerCase().includes(texto)
     )
