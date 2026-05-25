@@ -2,7 +2,6 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { enviarCorreoVerificacion } = require("../services/emailService");
 
 //autentifica y registra al usuario, verefica usuarios ya exixtentes y añade nuevos
 
@@ -45,9 +44,6 @@ const register = async (req, res) => {
       nombre: nombre.trim(),
       email: emailNormalizado,
       password: passwordHasheada,
-      emailVerificado: false,
-      tokenVerificacionEmail: tokenVerificacion,
-      tokenVerificacionExpira: tokenExpira,
       favoritos: [],
       reservas: [],
       planesRealizados: [],
@@ -56,9 +52,9 @@ const register = async (req, res) => {
 
     await nuevoUsuario.save();
 
-      const link = `${process.env.FRONTEND_URL || "http://localhost:5173"}/verificar-email/${tokenVerificacion}`;
+      // const link = `${process.env.FRONTEND_URL || "http://localhost:5173"}/verificar-email/${tokenVerificacion}`;
 
-    await enviarCorreoVerificacion(nuevoUsuario.email, link);
+    // await enviarCorreoVerificacion(nuevoUsuario.email, link);
 
     res.status(201).json({
       user: {
@@ -68,7 +64,6 @@ const register = async (req, res) => {
         imagenPerfil: nuevoUsuario.imagenPerfil
       },
       token: generarToken(nuevoUsuario._id),
-      msg: "Revisa tu correo para verificar la cuenta."
     });
 
   } catch (error) {
