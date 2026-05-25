@@ -227,7 +227,6 @@ const actualizarPerfil = async (req, res) => {
 module.exports = {
   register,
   login,
-  verificarEmail,
   getMe,
   actualizarPerfil
 };
