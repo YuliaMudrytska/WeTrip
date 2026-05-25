@@ -87,8 +87,8 @@ const cerrarSesion = () => {
         <button class="menu-item" @click="navegar('/propuestas')">Mis Propuestas</button>
         <button class="menu-item" @click="navegar('/reservados')">Reservados</button>
         <button class="menu-item" @click="navegar('/realizados')">Planes realizados</button>
-        <button class="menu-item" @click="navegar('/notificaciones')">Notificaciones</button>
-        <button class="menu-item" @click="navegar('/novedades')">Novedades</button>
+       <!-- <button class="menu-item" @click="navegar('/notificaciones')">Notificaciones</button>
+        <button class="menu-item" @click="navegar('/novedades')">Novedades</button>-->
       </div>
     </transition>
 
