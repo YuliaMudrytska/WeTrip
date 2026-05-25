@@ -11,7 +11,6 @@ import novedadesView from "../views/novedadesView.vue";
 import logInView from "../views/logInView.vue";
 import registroView from "../views/registroView.vue";
 import cuentaView from "../views/cuentaView.vue";
-import verificarEmailView from "../views/verificarEmailView.vue";
 
 const routes = [
   {
@@ -86,11 +85,6 @@ const routes = [
     name: "cuenta",
     component: cuentaView,
     meta: { requiresAuth: true }
-  },
-  {
-    path: "/verificar-email/:token",
-    name: "verificar-email",
-    component: verificarEmailView
   },
   {
     path: "/:pathMatch(.*)*",

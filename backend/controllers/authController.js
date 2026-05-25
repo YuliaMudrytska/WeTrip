@@ -122,7 +122,7 @@ const login = async (req, res) => {
   }
 };
 
-//Verificación del correo electrónico
+/*Verificación del correo electrónico
 const verificarEmail = async (req, res) => {
   try {
     const { token } = req.params;
@@ -153,7 +153,7 @@ const verificarEmail = async (req, res) => {
       msg: "Error verificando correo."
     });
   }
-};
+};*/
 
 // Usuario autenticado
 const getMe = async (req, res) => {
