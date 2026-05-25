@@ -17,9 +17,6 @@ router.post("/register", register);
 // Login
 router.post("/login", login);
 
-//correo verificado
-router.get("/verify-email", verificarEmail);
-
 // Usuario autenticado
 router.get("/me", protect, getMe);
 
